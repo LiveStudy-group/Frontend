@@ -1,6 +1,10 @@
+import Footer from "../components/common/Footer";
+import Header from "../components/common/Header";
+
 export default function TestPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-10 space-y-8">
+    <div className="min-h-screen bg-gray-50">
+      <Header />
       <h1 className="text-headline1_B">Headline 1 스타일</h1>
       <h2 className="text-headline2_B">Headline 2 스타일</h2>
       <h3 className="text-headline3_B">Headline 3 스타일</h3>
@@ -16,6 +20,7 @@ export default function TestPage() {
           비활성화 버튼
         </button>
       </div>
+      <Footer />
     </div>
   );
 }
