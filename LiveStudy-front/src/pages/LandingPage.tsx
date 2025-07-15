@@ -1,6 +1,7 @@
 import { FiClock, FiMessageCircle, FiUsers, FiVideo } from "react-icons/fi";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
+import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   return (
@@ -15,8 +16,8 @@ export default function LandingPage() {
           <p className="text-white text-center mt-4 mb-12">
             전국의 모든 친구들과, 집중하는 공부를 시작해보세요.
           </p>
-          <button className="max-round-button-white text-primary-500 transition-all duration-300 hover:bg-primary-500 hover:text-white text-headline4_B">
-            지금 시작하기
+          <button className="max-round-button-white text-primary-500 hover:bg-primary-500 hover:text-white text-headline4_B">
+            <Link to={'/login'}>지금 시작하기</Link>
           </button>
         </div>
         {/* 딤처리 */}
@@ -95,9 +96,9 @@ export default function LandingPage() {
         <div className="text-center mt-16">
           <button
             onClick={() => window.location.href = '/auth/join'} // 또는 router.push('/auth/join') 사용도 가능
-            className="max-round-button-primary transition-all duration-300 hover:bg-white hover:text-primary-500 text-headline4_B"
+            className="max-round-button-primary duration-300 hover:bg-white hover:text-primary-400 text-headline4_B"
           >
-            지금 가입하고 시작하기
+            <Link to={'/login'}>지금 가입하고 시작하기</Link>
           </button>
         </div>
       </section>
