@@ -30,29 +30,29 @@ a {
   /* 고정 사이즈(버튼이 하나 크게 사용될 때) */
   /* 가장 큰 사이즈 rounded full */
   .max-round-button-white {
-    @apply w-full w-[180px] px-6 py-4 bg-white border border-gray-300 rounded-full font-bold;
+    @apply min-w-[180px] px-9 py-6 bg-white border border-gray-300 rounded-full font-bold;
   }
 
   .max-round-button-gray {
-    @apply w-full w-[180px] px-6 py-4 bg-gray-100 border border-gray-300 rounded-full font-bold;
+    @apply min-w-[180px] px-9 py-6 bg-gray-100 border border-gray-300 rounded-full font-bold;
   }
 
   .max-round-button-primary {
-    @apply w-full w-[180px] px-6 py-4 bg-primary-500 border border-gray-300 rounded-full font-bold text-white;
+    @apply min-w-[180px] px-9 py-6 bg-primary-500 border border-gray-300 rounded-full font-bold text-white;
   }
 
   /* 고정 사이즈(버튼이 2개 붙어져 사용할 때) */
   /* 가장 큰 사이즈 rounded-12px */
   .max-button-white {
-    @apply w-full w-[180px] px-6 py-4 bg-white border border-gray-300 rounded-xl font-bold;
+    @apply min-w-[180px] px-9 py-6 bg-white border border-gray-300 rounded-xl font-bold;
   }
 
   .max-button-gray {
-    @apply w-full w-[180px] px-6 py-4 bg-gray-100 border border-gray-300 rounded-xl font-bold;
+    @apply min-w-[180px] px-9 py-6 bg-gray-100 border border-gray-300 rounded-xl font-bold;
   }
 
   .max-button-primary {
-    @apply w-full w-[180px] px-6 py-4 bg-primary-500 border border-gray-300 rounded-xl font-bold text-white;
+    @apply min-w-[180px] px-9 py-6 bg-primary-500 border border-gray-300 rounded-xl font-bold text-white;
   }
 
   /* 가변 사이즈 최소 사이즈 적용(120px) */
@@ -87,44 +87,44 @@ a {
 
   /* 헤드라인(타이틀) */
   .text-headline1_B {
-    @apply text-[32px] leading-[36px] font-bold tracking-[-0.5px];
+    @apply text-4xl font-bold tracking-[-0.5px];
   }
 
   .text-headline2_B {
-    @apply text-[28px] leading-[32px] font-bold tracking-[-0.5px];
+    @apply text-3xl font-bold tracking-[-0.5px];
   }
 
   .text-headline3_B {
-    @apply text-[24px] leading-[32px] font-bold tracking-[-0.5px];
+    @apply text-2xl font-bold tracking-[-0.5px];
   }
 
   .text-headline4_B {
-    @apply text-[20px] leading-[24px] font-semibold tracking-[-0.5px];
+    @apply text-xl font-semibold tracking-[-0.5px];
   }
 
   /* 본문(Body) */
   .text-body1_M {
-    @apply text-[14px] leading-[18px] font-medium;
+    @apply text-sm font-medium;
   }
 
   .text-body1_R {
-    @apply text-[14px] leading-[18px] font-normal;
+    @apply text-sm font-normal;
   }
 
   /* 서브텍스트(Caption) */
   .text-caption1_SB {
-    @apply text-[12px] leading-[16px] font-semibold;
+    @apply text-sm font-semibold;
   }
 
   .text-caption2_SB {
-    @apply text-[10px] leading-[14px] font-semibold;
+    @apply text-xs font-semibold;
   }
 
   .text-caption1_M {
-    @apply text-[12px] leading-[16px] font-medium;
+    @apply text-sm font-medium;
   }
 
   .text-caption2_M {
-    @apply text-[10px] leading-[14px] font-medium;
+    @apply text-xs font-medium;
   }
 }
