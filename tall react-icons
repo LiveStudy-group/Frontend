@@ -1,0 +1,57 @@
+[33mcommit 6fe39d2941c76efc7cc0312d789c0918cb1169dd[m[33m ([m[1;31morigin/feature/jiho-header-component[m[33m, [m[1;32mfeature/jiho-header-component[m[33m)[m
+Merge: 24a08a8 087dada
+Author: jinwon <110159742+JinwonShen@users.noreply.github.com>
+Date:   Tue Jul 15 14:48:43 2025 +0900
+
+    Merge pull request #8 from LiveStudy-group/feature/jiho-header-component
+    
+    Feature/jiho header component
+
+[33mcommit 24a08a8aa10ead2ddf626e114783ca9d7aa10255[m
+Merge: 3e4c589 ab302e6
+Author: jinwon <110159742+JinwonShen@users.noreply.github.com>
+Date:   Tue Jul 15 14:48:29 2025 +0900
+
+    Merge pull request #7 from LiveStudy-group/feature/jiho-notfound-page
+    
+    feat(notfound): 404 페이지 반응형 UI 구현
+
+[33mcommit 087dada0a6293ec0c3a8127480448f97973aed8e[m
+Author: seojiho <happyluck0426@gmail.com>
+Date:   Tue Jul 15 14:44:21 2025 +0900
+
+    feat(header): 공통 헤더 컴포넌트 구현
+
+[33mcommit ab4d0f420f676733e1052ea45c2f9d3f42ede993[m[33m ([m[1;32mfeature/jiho-notfound-page[m[33m)[m
+Merge: ab302e6 3e4c589
+Author: seojiho <happyluck0426@gmail.com>
+Date:   Tue Jul 15 14:38:19 2025 +0900
+
+    Merge branch 'dev' of https://github.com/LiveStudy-group/Frontend into feature/jiho-notfound-page
+
+[33mcommit 3e4c589184771ec5a0c491d7d0bec14cac932e4d[m
+Merge: 3afcd1d 1ebfa4f
+Author: Doongiho <114303137+Doongiho@users.noreply.github.com>
+Date:   Tue Jul 15 14:24:48 2025 +0900
+
+    Merge pull request #6 from LiveStudy-group/design/jinwon-landing-page-ui
+    
+    Design/jinwon landing page UI
+
+[33mcommit ab302e697e9006717ad4052d6615dbb05bff08f5[m[33m ([m[1;31morigin/feature/jiho-notfound-page[m[33m)[m
+Author: seojiho <happyluck0426@gmail.com>
+Date:   Tue Jul 15 14:23:32 2025 +0900
+
+    feat(notfound): 404 페이지 반응형 UI 구현
+
+[33mcommit 1ebfa4f646058210f4fccc14b7041dded58831d4[m[33m ([m[1;31morigin/design/jinwon-landing-page-ui[m[33m)[m
+Author: JinwonShen <bosv031999@gmail.com>
+Date:   Tue Jul 15 14:18:22 2025 +0900
+
+    design: global.css 텍스트 수정
+
+[33mcommit c6567216ca7203366ea8d1f10915824236c68e1b[m
+Author: JinwonShen <bosv031999@gmail.com>
+Date:   Tue Jul 15 13:55:45 2025 +0900
+
+    design: landing-page-ui 및 global.css 부분 수정
