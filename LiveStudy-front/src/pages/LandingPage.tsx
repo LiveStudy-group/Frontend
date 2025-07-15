@@ -1,9 +1,11 @@
 import { FiClock, FiMessageCircle, FiUsers, FiVideo } from "react-icons/fi";
+import Header from "../components/common/Header";
+import Footer from "../components/common/Footer";
 
 export default function LandingPage() {
   return (
     <div>
-      {/* <Header /> */}
+      <Header />
       <section className="relative w-full h-[700px]">
         {/* 배너 정보 */}
         <div className="max-w-[1280px] w-full absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col justify-center items-center z-50">
@@ -99,7 +101,7 @@ export default function LandingPage() {
           </button>
         </div>
       </section>
-      {/* <Footer /> */}
+      <Footer />
     </div>
   )
 }
