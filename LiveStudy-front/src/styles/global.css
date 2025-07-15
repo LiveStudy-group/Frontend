@@ -57,28 +57,28 @@ a {
 
   /* 가변 사이즈 최소 사이즈 적용(120px) */
   .middle-button-white {
-    @apply min-w-[120px] px-6 py-2 bg-white border border-gray-300 rounded-[8px] font-medium;
+    @apply min-w-[120px] px-6 py-2 bg-white border border-gray-300 rounded-lg font-medium;
   }
 
   .middle-button-gray {
-    @apply min-w-[120px] px-6 py-2 bg-gray-100 border border-gray-300 rounded-[8px] font-medium;
+    @apply min-w-[120px] px-6 py-2 bg-gray-100 border border-gray-300 rounded-lg font-medium;
   }
 
   .middle-button-primary {
-    @apply min-w-[120px] px-6 py-2 bg-primary-500 border border-gray-300 rounded-[8px] font-medium;
+    @apply min-w-[120px] px-6 py-2 bg-primary-500 border border-gray-300 rounded-lg font-medium;
   }
 
   /* 가변 사이즈 기본 */
-  .middle-button-white {
-    @apply px-6 py-2 bg-white border border-gray-300 rounded-[8px] font-normal;
+  .basic-button-white {
+    @apply w-auto whitespace-nowrap px-6 py-2 bg-white border border-gray-300 rounded-lg font-normal;
   }
 
-  .middle-button-gray {
-    @apply px-6 py-2 bg-gray-100 border border-gray-300 rounded-[8px] font-normal;
+  .basic-button-gray {
+    @apply w-auto whitespace-nowrap px-6 py-2 bg-gray-100 border border-gray-300 rounded-lg font-normal;
   }
 
-  .middle-button-primary {
-    @apply px-6 py-2 bg-primary-500 border border-gray-300 rounded-[8px] font-normal;
+  .basic-button-primary {
+    @apply w-auto whitespace-nowrap px-6 py-2 bg-primary-500 border border-gray-300 rounded-lg font-normal;
   }
 
   /* ------------------------------------------------------------------------------------------------ */
@@ -126,5 +126,13 @@ a {
 
   .text-caption2_M {
     @apply text-xs font-medium;
+  }
+
+  .text-caption1_R {
+    @apply text-sm font-normal;
+  }
+
+  .text-caption2_R {
+    @apply text-xs font-normal;
   }
 }
