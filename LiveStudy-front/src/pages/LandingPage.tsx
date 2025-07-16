@@ -1,6 +1,7 @@
 import { FiClock, FiMessageCircle, FiUsers, FiVideo } from "react-icons/fi";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
+import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   return (
@@ -97,7 +98,7 @@ export default function LandingPage() {
             onClick={() => window.location.href = '/auth/join'} // 또는 router.push('/auth/join') 사용도 가능
             className="middle-button-primary md:max-round-button-primary text-white text-body1_M sm:text-headline4_B hover:bg-white hover:text-primary-500"
           >
-            지금 가입하고 시작하기
+            <Link to={'/login'}>지금 가입하고 시작하기</Link>
           </button>
         </div>
       </section>

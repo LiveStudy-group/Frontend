@@ -12,9 +12,15 @@ export default function Footer() {
         <div className="flex flex-col items-center text-sm text-gray-500">
           {/* 우측: 링크 */}
           <div className="flex gap-4">
-            <Link to="/about" className="hover:text-primary-400 transition">서비스 소개</Link>
-            <Link to="/terms" className="hover:text-primary-400 transition">이용약관</Link>
-            <Link to="/privacy" className="hover:text-primary-400 transition">개인정보처리방침</Link>
+            <Link to="/about" className="text-caption1_R text-gray-500 hover:text-primary-400 transition">
+              서비스 소개
+            </Link>
+            <Link to="/terms" className="text-caption1_R text-gray-500 hover:text-primary-400 transition">
+              이용약관
+            </Link>
+            <Link to="/privacy" className="text-caption1_R text-gray-500 hover:text-primary-400 transition">
+              개인정보처리방침
+            </Link>
           </div>
 
           {/* 하단 카피라이트 */}
