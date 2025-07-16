@@ -14,7 +14,7 @@ export default function JoinPage() {
           <span className="text-caption1_M mb-2">이메일</span>
           <div className="flex gap-2">
             <input type="text" className="w-full px-4 py-3 bg-white rounded-lg border border-gray-300 text-body1_R" placeholder="이메일을 입력해주세요." />
-            <button className="middle-button-gray text-body1_M transition-all duration-300 hover:bg-primary-500 hover:text-white">중복확인</button>
+            <button className="middle-button-gray text-body1_M hover:bg-primary-500 hover:text-white">중복확인</button>
           </div>
         </div>
         <div className="w-full">
@@ -78,7 +78,7 @@ export default function JoinPage() {
             <span className="text-caption1_R">[필수] 개인정보 수집 및 이용에 동의합니다.</span>
           </label>
         </div>
-        <button className="w-full py-4 bg-gray-100 border border-gray-300 rounded-xl font-bold transition-all duration-300 hover:bg-primary-500 hover:text-white">
+        <button className="w-full py-4 bg-gray-100 border border-gray-300 rounded-xl font-bold hover:bg-primary-500 hover:text-white">
           가입하기
         </button>
       </section>
