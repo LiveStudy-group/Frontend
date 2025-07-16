@@ -41,8 +41,6 @@ const StudyRoomPage = () => {
             </div>
           ))}
         </section>
-
-        <aside className="w-[60px] flex-shrink-0 border-l bg-white flex flex-col justify-between" />
       </main>
     </div>
   );
