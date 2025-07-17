@@ -13,7 +13,7 @@ export default function LandingPage() {
           <h1 className="text-headline3_B leading-9 md:text-headline1_B text-white text-center">
             함께하는 루틴으로,<br className="sm:hidden" /> 몰입감 있는 공부를
           </h1>
-          <p className="text-body1_R md:text-[16px] text-white text-center mt-4 mb-12 break-words whitespace-pre-wrap">
+          <p className="text-body1_R md:text-base text-white text-center mt-4 mb-12 break-words whitespace-pre-wrap">
             전국의 모든 친구들과, 집중하는 공부를 시작해보세요.
           </p>
           <button className="middle-button-white md:max-round-button-white text-primary-500 transition-all duration-300 hover:bg-primary-500 hover:text-white text-body1_M sm:text-headline4_B">
@@ -27,7 +27,7 @@ export default function LandingPage() {
       </section>
       <section className="max-w-[1280px] w-full m-auto px-6 lg:px-0 flex flex-col py-16">
         <h2 className="text-headline3_B md:text-headline2_B mb-4 text-center"><span className="text-primary-500">LiveStudy</span> 는 이런 서비스에요</h2>
-        <p className="text-body1_R md:text-[16px] mx-auto text-gray-500">
+        <p className="text-body1_R md:text-base mx-auto text-gray-500">
           영상 공유, 채팅, 포모도로 타이머, 집중 유도 디자인 등 혼자서 어려웠던 집중을 함께 만들어가는 온라인 스터디룸 플랫폼입니다.
         </p>
         <article className="flex justify-center flex-wrap gap-6 px-0 py-6 lg:p-6">
@@ -61,7 +61,7 @@ export default function LandingPage() {
               <img src="/img/feature-join-room.png" alt="방 입장" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
               <div className="flex-1 w-full">
                 <h3 className="text-headline4_B md:text-headline3_B mb-2">1. 랜덤 스터디룸에 입장</h3>
-                <p className="text-body1_R md:text-[16px] text-gray-500">
+                <p className="text-body1_R md:text-base text-gray-500">
                   ‘스터디 시작하기’ 버튼을 누르면 자동으로 스터디룸에 입장해요.<br />
                   카메라 사용 동의를 하면 입장이 완료됩니다.
                 </p>
@@ -73,7 +73,7 @@ export default function LandingPage() {
               <img src="/img/feature-mic-off.png" alt="마이크 꺼짐 상태" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
               <div className="flex-1 w-full">
                 <h3 className="text-headline4_B md:text-headline3_B mb-2 text-left sm:text-right">2. 마이크 OFF, 조용히 집중 시작</h3>
-                <p className="text-body1_R md:text-[16px] text-gray-500 text-left sm:text-right">
+                <p className="text-body1_R md:text-base text-gray-500 text-left sm:text-right">
                   입장하면 마이크는 자동으로 꺼져요.<br />
                   공부할 준비가 되면 직접 타이머를 시작할 수 있어요.
                 </p>
@@ -85,7 +85,7 @@ export default function LandingPage() {
               <img src="/img/feature-timer.png" alt="타이머 시작" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
               <div className="flex-1 w-full">
                 <h3 className="text-headline4_B md:text-headline3_B mb-2">3. 자동 타이머로 몰입</h3>
-                <p className="text-body1_R md:text-[16px] text-gray-500">
+                <p className="text-body1_R md:text-base text-gray-500">
                   타이머는 방 입장과 동시에 시작되고,<br />
                   휴식 시간에는 상태를 전환하여 타이머를 멈출 수 있어요.
                 </p>

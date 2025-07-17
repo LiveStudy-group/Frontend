@@ -6,6 +6,7 @@ import MainPage from './pages/MainPage';
 import TestPage from './pages/TestPage';
 import LoginPage from './pages/LoginPage';
 import JoinPage from './pages/JoinPage';
+import MyPage from './pages/MyPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path='/login' element={<LoginPage />} />
       <Route path='/join' element={<JoinPage />} />
       <Route path='/main' element={<MainPage />} />
+      <Route path='/mypage' element={<MyPage />} />
       <Route path='*' element={<NotFoundPage />} />
       <Route path='test-page' element={<TestPage />} />
     </Routes>

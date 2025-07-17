@@ -34,7 +34,7 @@ export default function MessageModal({ open, onClose }: MessageModalProps) {
     <div className="fixed bottom-32 right-6 w-[360px] h-2/3 bg-white rounded-lg shadow-xl flex flex-col">
       <div className="flex justify-between items-center p-4 border-b border-gray-300">
         <h2 className="flex items-center gap-2 text-body1_M">
-          <FiMail className="m-1 text-[16px]" />
+          <FiMail className="m-1 text-base" />
           <span>스터디룸 대화방</span>
         </h2>
         <button onClick={onClose} className="p-1 rounded-sm hover:text-primary-400 hover:bg-gray-100">
