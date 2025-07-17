@@ -1,25 +1,62 @@
-import { LiveKitRoom } from '@livekit/components-react';
+import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
 import { useEffect, useState } from 'react';
 import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
 import VideoGrid from '../components/video/VideoGrid';
 
 const StudyRoomPage = () => {
   const [token, setToken] = useState('');
+  const [identity, setIdentity] = useState('');
 
   useEffect(() => {
+    // 스터디룸 입장을 위한 토큰을 서버에서 요청
     const fetchToken = async () => {
-      const identity = 'user_' + Math.floor(Math.random() * 10000);
-      const roomName = 'studyroom1';
+      const generatedIdentity = 'user_' + Math.floor(Math.random() * 10000);
+      setIdentity(generatedIdentity);
 
-      const res = await fetch(`http://localhost:5001/token?roomName=${roomName}&identity=${identity}`);
-      const data = await res.json();
-      setToken(data.token);
+      try {
+        const res = await fetch(
+          http://localhost:5001/token?roomName=studyroom1&identity=${generatedIdentity}
+        );
+        const data = await res.json();
+        setToken(data.token);
+      } catch (err) {
+        console.error('토큰 생성 실패:', err);
+      }
     };
 
     fetchToken();
   }, []);
 
-  if (!token) return <div>토큰 생성 중...</div>;
+  // 토큰이 아직 생성되지 않은 경우 로딩 화면 출력
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center h-screen text-lg">
+        토큰 생성 중입니다. 브라우저 권한을 허용했는지 확인해주세요.
+      </div>
+    );
+  }
+
+  // 디버깅 용 나중에 삭제 예정
+  const RoomLogger = () => {
+    const room = useRoomContext();
+
+    useEffect(() => {
+      if (room.state === 'connected') {
+        const local = room.localParticipant;
+        const videoTrack = local
+          .getTrackPublications()
+          .find((pub) => pub.track?.kind === 'video')?.track;
+
+        if (!videoTrack) {
+          console.warn('비디오 트랙이 없습니다.');
+        }
+      }
+    }, [room]);
+
+    return null;
+  };
+
 
   return (
     <LiveKitRoom
@@ -27,8 +64,11 @@ const StudyRoomPage = () => {
       serverUrl="wss://livestudy-7t5xkn6m.livekit.cloud"
       connect
       video
-      audio
+      audio={false} 
     >
+      {/* 디버깅용 컴포넌트 */}
+      <RoomLogger />
+
       <div className="bg-gray-50 flex flex-col nodrag min-h-screen overflow-hidden">
         
       {/* 공통 헤더 컴포넌트 */}
@@ -38,10 +78,10 @@ const StudyRoomPage = () => {
 
           {/* 화상 공유 컴포넌트 */}
           <VideoGrid />
-
-          {/* 단체 메제지 */}
-          <aside className="w-[60px] flex-shrink-0 border-l bg-white flex flex-col justify-between" />
         </main>
+        
+        {/* 공통 푸터 컴포넌트 */}
+        <Footer />
       </div>
     </LiveKitRoom>
   );
