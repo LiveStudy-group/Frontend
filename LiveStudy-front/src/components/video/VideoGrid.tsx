@@ -4,7 +4,9 @@ import { MdReport } from 'react-icons/md';
 import LiveVideoBox from './LiveVideoBox';
 
 const VideoGrid = () => {
-  const tracks = useTracks([{ source: Track.Source.Camera, withPlaceholder: true }]);
+  const tracks = useTracks([
+    { source: Track.Source.Camera, withPlaceholder: true, onlySubscribed: false }
+  ]);
 
   return (
     <section className="flex-1 p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto">
@@ -13,6 +15,7 @@ const VideoGrid = () => {
           key={participant.identity + idx}
           className="bg-gray-100 rounded shadow-sm overflow-hidden flex items-center justify-center aspect-[4/3] relative"
         >
+
           {/* 상태 */}
           <div className="w-full h-full bg-gray-200 rounded-md relative">
             <div className="absolute top-1 left-1 w-2 h-2 rounded-full bg-green-500" />
@@ -26,11 +29,13 @@ const VideoGrid = () => {
             <LiveVideoBox participant={participant} />
             <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-black/40 text-white text-xs flex items-center justify-center">
               <div className="flex items-center space-x-1">
+                 
                  {/* 유저 정보 */}
                 <span className="text-sm">🌱</span>
                 <span className="text-caption1_M text-lime-400 font-semibold">칭호</span>
                 <span className="text-caption1_M font-semibold">{participant.identity}</span>
               </div>
+              
               {/* 신고 버튼 */}
               <button className="absolute right-2 text-red-300 hover:text-red-500">
                 <MdReport size={16} />
