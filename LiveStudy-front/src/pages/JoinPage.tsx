@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { signUp } from "../lib/api/auth"
 import { useNavigate } from "react-router-dom"
+import { checkDuplicateEmail } from "../mocks/handlers"
+import type { AxiosError } from "axios"
 
 export default function JoinPage() {
   const [email, setEmail] = useState('')
@@ -18,9 +20,19 @@ export default function JoinPage() {
 
   const navigate = useNavigate()
 
+  const handleCheckEmail = async () => {
+    try {
+      await checkDuplicateEmail(email);
+      alert('사용 가능한 이메일입니다.');
+    } catch (error) {
+      const err = error as AxiosError<{message: string}>;
+      alert(err.response?.data?.message || '중복된 이메일입니다.')
+    }
+  }
+
   const isValidPassword = (password: string): boolean => {
     // 최소 8자, 영문 + 숫자 + 특수문자 조합
-    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{8,}$/;
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+{}[\]:;<>,.?~\\/-]).{8,}$/;
     return regex.test(password);
   };
 
@@ -76,7 +88,8 @@ export default function JoinPage() {
       alert('회원가입 성공! 로그인 페이지로 이동합니다.')
       navigate('/email-login')
     } catch (error) {
-      alert(error.response?.data?.message || '회원가입 실패')
+      const err = error as AxiosError<{ message: string }>
+      alert(err.response?.data?.message || '회원가입 실패')
     }
   };
 
@@ -101,7 +114,12 @@ export default function JoinPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <button className="middle-button-gray text-body1_M hover:bg-primary-500 hover:text-white">중복확인</button>
+            <button 
+              className="middle-button-gray text-body1_M hover:bg-primary-500 hover:text-white"
+              onClick={handleCheckEmail}
+            >
+                중복확인
+            </button>
           </div>
         </div>
         <div className="w-full">

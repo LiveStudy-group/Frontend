@@ -12,6 +12,13 @@ interface LoginData {
   password: string;
 }
 
+export function handleAxiosError(error: unknown, defaultMessage: string) {
+  if(axios.isAxiosError(error)) {
+    throw new Error(error.response?.data?.message || defaultMessage)
+  }
+  throw new Error('알 수 없는 오류가 발생했습니다.')
+}
+
 export async function login({ email, password } : LoginData) {
   try {
     const response = await axios.post('/api/auth/login', {
@@ -21,8 +28,7 @@ export async function login({ email, password } : LoginData) {
 
     return response.data;
   } catch (error) {
-    console.error('로그인 실패: ', error)
-    throw error;
+    handleAxiosError(error, '로그인이 실패했습니다.')
   }
 }
 
@@ -37,7 +43,6 @@ export async function signUp({ email, password, repassword, username }: SignUpDa
     });
     return response.data;
   } catch (error) {
-    console.error('회원가입 실패:', error);
-    return null;
+    handleAxiosError(error, '회원가입이 실패했습니다.')
   }
 }

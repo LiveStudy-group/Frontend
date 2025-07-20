@@ -54,7 +54,7 @@ export default function EmailLoginPage() {
           <button 
             type="submit" 
             className="basic-button-primary py-3 text-white border border-gray-300 hover:bg-gray-100 hover:text-primary-400"
-            onChange={handleLogin}
+            onClick={handleLogin}
           >
             로그인
           </button>
