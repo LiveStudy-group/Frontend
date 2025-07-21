@@ -12,6 +12,11 @@ interface LoginData {
   password: string;
 }
 
+interface LoginResponse {
+  username: string;
+  token: string;
+}
+
 export function handleAxiosError(error: unknown, defaultMessage: string) {
   if(axios.isAxiosError(error)) {
     throw new Error(error.response?.data?.message || defaultMessage)
@@ -19,9 +24,10 @@ export function handleAxiosError(error: unknown, defaultMessage: string) {
   throw new Error('알 수 없는 오류가 발생했습니다.')
 }
 
+// 로그인
 export async function login({ email, password } : LoginData) {
   try {
-    const response = await axios.post('/api/auth/login', {
+    const response = await axios.post<LoginResponse>('/api/auth/login', {
       email,
       password,
     })
@@ -29,6 +35,7 @@ export async function login({ email, password } : LoginData) {
     return response.data;
   } catch (error) {
     handleAxiosError(error, '로그인이 실패했습니다.')
+    throw error;
   }
 }
 

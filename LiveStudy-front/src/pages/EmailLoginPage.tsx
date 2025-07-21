@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "../lib/api/auth";
+import { login as loginApi } from "../lib/api/auth";
+import { useAuthStore } from "../store/authStore";
 
 export default function EmailLoginPage() {
   const [email, setEmail] = useState('')
   const [password,setPassword] = useState('')
+  
   const navigate = useNavigate()
+  const setLogin = useAuthStore((state) => state.login);
 
   const handleLogin = async () => {
     if(!email || !password) {
@@ -14,7 +17,8 @@ export default function EmailLoginPage() {
     }
 
     try {
-      await login({email, password})
+      const { username, token } = await loginApi({ email, password })
+      setLogin(username, token);
       alert('로그인 성공')
       navigate('/main');
     } catch (error) {
