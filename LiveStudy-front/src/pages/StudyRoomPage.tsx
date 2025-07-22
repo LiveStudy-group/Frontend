@@ -1,48 +1,89 @@
-import { MdReport } from 'react-icons/md';
+import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
+import { useEffect, useState } from 'react';
 import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
+import VideoGrid from '../components/video/VideoGrid';
 
 const StudyRoomPage = () => {
+  const [token, setToken] = useState('');
+  const [identity, setIdentity] = useState('');
+
+  useEffect(() => {
+    // 스터디룸 입장을 위한 토큰을 서버에서 요청
+    const fetchToken = async () => {
+      const generatedIdentity = 'user_' + Math.floor(Math.random() * 10000);
+      setIdentity(generatedIdentity);
+
+      try {
+        const res = await fetch(
+          `http://localhost:5001/token?roomName=studyroom1&identity=${generatedIdentity}`
+        );
+        const data = await res.json();
+        setToken(data.token);
+      } catch (err) {
+        console.error('토큰 생성 실패:', err);
+      }
+    };
+
+    fetchToken();
+  }, []);
+
+  // 토큰이 아직 생성되지 않은 경우 로딩 화면 출력
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center h-screen text-lg">
+        토큰 생성 중입니다. 브라우저 권한을 허용했는지 확인해주세요.
+      </div>
+    );
+  }
+
+  // 디버깅 용 나중에 삭제 예정
+  const RoomLogger = () => {
+    const room = useRoomContext();
+
+    useEffect(() => {
+      if (room.state === 'connected') {
+        const local = room.localParticipant;
+        const videoTrack = local
+          .getTrackPublications()
+          .find((pub) => pub.track?.kind === 'video')?.track;
+
+        if (!videoTrack) {
+          console.warn('비디오 트랙이 없습니다.');
+        }
+      }
+    }, [room]);
+
+    return null;
+  };
+
+
   return (
-    <div className="bg-gray-50 flex flex-col nodrag min-h-screen overflow-hidden">
+    <LiveKitRoom
+      token={token}
+      serverUrl="wss://livestudy-7t5xkn6m.livekit.cloud"
+      connect
+      video
+      audio={false} 
+    >
+      {/* 디버깅용 컴포넌트 */}
+      <RoomLogger />
+
+      <div className="bg-gray-50 flex flex-col nodrag min-h-screen overflow-hidden">
+        
       {/* 공통 헤더 컴포넌트 */}
-      <Header />
+        <Header />
 
-      <main className="flex-1 w-full max-w-[1280px] mx-auto flex overflow-hidden">
-        <section className="flex-1 p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto">
-          {Array.from({ length: 20 }).map((_, idx) => (
-            <div
-              key={idx}
-              className="bg-gray-100 rounded shadow-sm overflow-hidden flex items-center justify-center aspect-[4/3] relative"
-            >
-              <div className="w-full h-full bg-gray-200 rounded-md relative">
-                {/* 상태 */}
-                <div className="absolute top-1 left-1 w-2 h-2 rounded-full bg-green-500" />
+        <main className="flex-1 w-full max-w-[1280px] mx-auto flex overflow-hidden">
 
-                {/* 타이머 */}
-                <div className="absolute top-1 right-1 flex justify-center items-center gap-[0.2rem] mt-[0.1rem]">
-                  <span className="text-caption2_M text-white bg-black/50 px-1 rounded">01:59:59</span>
-                </div>
-
-                {/* 유저 정보 + 신고 */}
-                <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-black/40 text-white text-xs flex items-center justify-center">
-                  {/* 유저 정보 */}
-                  <div className="flex items-center space-x-1">
-                    <span className="text-sm">🌱</span>
-                    <span className="text-caption1_M text-lime-400 font-semibold">꾸준함의 씨앗</span>
-                    <span className="text-caption1_M font-semibold">홍길동</span>
-                  </div>
-
-                  {/* 신고 버튼 */}
-                  <button className="absolute right-2 text-red-300 hover:text-red-500">
-                    <MdReport size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
-      </main>
-    </div>
+          {/* 화상 공유 컴포넌트 */}
+          <VideoGrid />
+        </main>
+        
+        {/* 공통 푸터 컴포넌트 */}
+        <Footer />
+      </div>
+    </LiveKitRoom>
   );
 };
 
