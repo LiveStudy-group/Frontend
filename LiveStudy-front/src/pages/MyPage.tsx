@@ -25,7 +25,7 @@ export default function MyPage() {
             <div className="flex-1">
               <img src="/public/img/my-page-profile-image-1.jpg" alt="프로필 이미지" className="w-10 h-10w-10 bg-gray-300 rounded-full border border-gray-300" />
             </div>
-            <button className="basic-button-gray text-body1_R">
+            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
               프로필 이미지 변경
             </button>
           </div>
@@ -37,7 +37,7 @@ export default function MyPage() {
             <div className="flex-1">
               <p className="text-caption1_M text-primary-500">홍길동</p>
             </div>
-            <button className="basic-button-gray text-body1_R">
+            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
               닉네임 변경
             </button>
           </div>
@@ -49,7 +49,7 @@ export default function MyPage() {
             <div className="flex-1">
               <p className="text-caption1_M text-primary-500">bosv031999@gmail.com</p>
             </div>
-            <button className="basic-button-gray text-body1_R">
+            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
               이메일 변경
             </button>
           </div>
@@ -58,7 +58,7 @@ export default function MyPage() {
             <div>
               <h3 className="min-w-[112px] text-body1_M ">비밀번호</h3>
             </div>
-            <button className="basic-button-gray text-body1_R">
+            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
               비밀번호 변경
             </button>
           </div>

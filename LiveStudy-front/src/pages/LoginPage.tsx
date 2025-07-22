@@ -16,12 +16,12 @@ export default function LoginPage() {
 
         {/* 로그인 버튼들 */}
         <div className="w-full flex flex-col gap-3">
-          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-primary-400 hover:text-white">
+          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">
             <Link to={'/email-login'}>Email 로그인</Link>
           </button>
-          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-primary-400 hover:text-white">Google 로그인</button>
-          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-primary-400 hover:text-white">Kakao 로그인</button>
-          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-primary-400 hover:text-white">Naver 로그인</button>
+          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">Google 로그인</button>
+          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">Kakao 로그인</button>
+          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">Naver 로그인</button>
         </div>
       </section>
     </div>

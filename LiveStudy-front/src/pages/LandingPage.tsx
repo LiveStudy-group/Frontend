@@ -16,8 +16,8 @@ export default function LandingPage() {
           <p className="text-body1_R md:text-base text-white text-center mt-4 mb-12 break-words whitespace-pre-wrap">
             전국의 모든 친구들과, 집중하는 공부를 시작해보세요.
           </p>
-          <button className="middle-button-white md:max-round-button-white text-primary-500 transition-all duration-300 hover:bg-primary-500 hover:text-white text-body1_M sm:text-headline4_B">
-            지금 시작하기
+          <button className="middle-button-primary md:max-round-button-primary border-primary-400 text-white text-body1_M sm:text-headline4_B hover:bg-primary-600">
+            <Link to={'/main'}>지금 시작하기</Link>
           </button>
         </div>
         {/* 딤처리 */}
@@ -94,11 +94,8 @@ export default function LandingPage() {
           </ul>
         </div>
         <div className="text-center mt-16">
-          <button
-            onClick={() => window.location.href = '/auth/join'} // 또는 router.push('/auth/join') 사용도 가능
-            className="middle-button-primary md:max-round-button-primary text-white text-body1_M sm:text-headline4_B hover:bg-white hover:text-primary-500"
-          >
-            <Link to={'/login'}>지금 가입하고 시작하기</Link>
+          <button className="middle-button-primary md:max-round-button-primary border-primary-400 text-white text-body1_M sm:text-headline4_B hover:bg-primary-600 ">
+            <Link to={'/main'}>지금 가입하고 시작하기</Link>
           </button>
         </div>
       </section>

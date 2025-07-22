@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="flex flex-col items-center text-sm text-gray-500">
           {/* 우측: 링크 */}
           <div className="flex gap-4">
-            <Link to="/about" className="text-caption1_R text-gray-500 hover:text-primary-400 transition">
+            <Link to="/" className="text-caption1_R text-gray-500 hover:text-primary-400 transition">
               서비스 소개
             </Link>
             <Link to="/terms" className="text-caption1_R text-gray-500 hover:text-primary-400 transition">

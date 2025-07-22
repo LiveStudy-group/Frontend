@@ -45,7 +45,7 @@ const MainPage = () => {
         <div className="pointer-events-auto">
           <button
             onClick={handleEnterStudyRoom}
-            className="px-6 py-3 text-lg bg-primary-500 text-white hover:bg-primary-400 rounded-lg font-bold"
+            className="middle-button-primary md:max-round-button-primary border-primary-400 text-white text-body1_M sm:text-headline4_B hover:bg-primary-600"
           >
             스터디룸 입장하기
           </button>
