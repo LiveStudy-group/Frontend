@@ -115,7 +115,7 @@ export default function JoinPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
             <button 
-              className="middle-button-gray text-body1_M hover:bg-primary-500 hover:text-white"
+              className="middle-button-gray text-body1_M border border-gray-300 hover:bg-primary-500 hover:text-white"
               onClick={handleCheckEmail}
             >
                 중복확인
