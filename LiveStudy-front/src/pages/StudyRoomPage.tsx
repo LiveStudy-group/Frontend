@@ -14,7 +14,7 @@ const StudyRoomPage = () => {
       const generatedIdentity = 'user_' + Math.floor(Math.random() * 10000);
       setIdentity(generatedIdentity);
 
-        try {
+      try {
         const res = await fetch(
           `http://localhost:5001/token?roomName=studyroom1&identity=${generatedIdentity}`
         );
