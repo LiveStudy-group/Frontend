@@ -48,6 +48,7 @@ export const handlers = [
         ctx.json({
           message: '로그인 성공',
           user: {
+            uid: 'test-uid-1234',
             email,
             username: '테스트 유저',
             token: 'fake-jwt-token'

@@ -3,10 +3,14 @@ import { persist } from "zustand/middleware";
 
 interface AuthState {
   isLoggedIn: boolean;
-  username: string | null;
+  user: {
+    uid: string;
+    email: string;
+    username: string;
+  } | null
   token: string | null;
 
-  login: (username: string, token: string) => void;
+  login: (user: { uid: string; email: string; username: string }, token: string) => void;
   logout: () => void;
 }
 
@@ -14,16 +18,21 @@ export const useAuthStore = create<AuthState>()(
   persist<AuthState>(
     (set) => ({
       isLoggedIn: false,
-      username: null,
+      user: {
+        uid: '',
+        email: '',
+        username: '',
+      },
       token: null,
 
-      login: (username, token) => 
-        set({ isLoggedIn: true, username, token }),
+      login: ({ uid, email, username }: { uid: string; email: string; username: string }, token: string) => {
+        set({ user: { uid, email, username }, token, isLoggedIn: true });
+      },
       logout: () => 
-        set({ isLoggedIn: false, username: null, token: null }),
+        set({ isLoggedIn: false, user: null, token: null }),
     }),
     {
-      name: "auth-storage",
+      name: "live-study-auth-storage",
     }
   )
 )

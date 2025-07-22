@@ -13,8 +13,13 @@ interface LoginData {
 }
 
 interface LoginResponse {
-  username: string;
-  token: string;
+  message: string;
+  user: {
+    uid: string;
+    email: string;
+    username: string;
+    token: string;
+  }
 }
 
 export function handleAxiosError(error: unknown, defaultMessage: string) {
@@ -32,7 +37,7 @@ export async function login({ email, password } : LoginData) {
       password,
     })
 
-    return response.data;
+    return response.data.user;
   } catch (error) {
     handleAxiosError(error, '로그인이 실패했습니다.')
     throw error;
