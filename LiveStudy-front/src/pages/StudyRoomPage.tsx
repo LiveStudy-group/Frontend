@@ -3,10 +3,13 @@ import { useEffect, useState } from 'react';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import VideoGrid from '../components/video/VideoGrid';
+import MessageButton from '../components/MessageButton';
+import MessageModal from '../components/MessageModal';
 
 const StudyRoomPage = () => {
   const [token, setToken] = useState('');
   const [identity, setIdentity] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     // 스터디룸 입장을 위한 토큰을 서버에서 요청
@@ -29,13 +32,13 @@ const StudyRoomPage = () => {
   }, []);
 
   // 토큰이 아직 생성되지 않은 경우 로딩 화면 출력
-  if (!token) {
-    return (
-      <div className="flex items-center justify-center h-screen text-lg">
-        토큰 생성 중입니다. 브라우저 권한을 허용했는지 확인해주세요.
-      </div>
-    );
-  }
+  // if (!token) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen text-lg">
+  //       토큰 생성 중입니다. 브라우저 권한을 허용했는지 확인해주세요.
+  //     </div>
+  //   );
+  // }
 
   // 디버깅 용 나중에 삭제 예정
   const RoomLogger = () => {
@@ -78,6 +81,10 @@ const StudyRoomPage = () => {
 
           {/* 화상 공유 컴포넌트 */}
           <VideoGrid />
+
+          {/* 메시지 버튼 및 모달 */}
+          <MessageButton onClick={() => setIsModalOpen(true)} />
+          <MessageModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </main>
         
         {/* 공통 푸터 컴포넌트 */}
