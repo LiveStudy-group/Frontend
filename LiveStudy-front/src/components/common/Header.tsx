@@ -34,7 +34,7 @@ const Header = () => {
   return (
     <header className="w-full border-b border-gray-100 z-50">
       <div className="max-w-[1280px] mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 className="text-headline3_B text-primary-500">
+        <h1 className="text-headline4_B sm:text-headline3_B text-primary-500">
           <Link to={'/main'}>LiveStudy</Link>
         </h1>
         {/* 로그인 여부에 따라 표시 */}

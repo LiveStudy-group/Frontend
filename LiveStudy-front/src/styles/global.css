@@ -93,19 +93,19 @@ a {
 
   /* 헤드라인(타이틀) */
   .text-headline1_B {
-    @apply text-4xl font-bold tracking-[-0.5px];
+    @apply text-4xl font-bold;
   }
 
   .text-headline2_B {
-    @apply text-3xl font-bold tracking-[-0.5px];
+    @apply text-3xl font-bold;
   }
 
   .text-headline3_B {
-    @apply text-2xl font-bold tracking-[-0.5px];
+    @apply text-2xl font-bold;
   }
 
   .text-headline4_B {
-    @apply text-xl font-semibold tracking-[-0.5px];
+    @apply text-xl font-semibold;
   }
 
   /* 본문(Body) */

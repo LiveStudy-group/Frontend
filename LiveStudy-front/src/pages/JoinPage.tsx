@@ -3,6 +3,7 @@ import { signUp } from "../lib/api/auth"
 import { useNavigate } from "react-router-dom"
 import { checkDuplicateEmail } from "../mocks/handlers"
 import type { AxiosError } from "axios"
+import { Link } from "react-router-dom"
 
 export default function JoinPage() {
   const [email, setEmail] = useState('')
@@ -94,7 +95,7 @@ export default function JoinPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center px-6 py-12">
       <section className="w-full max-w-sm flex flex-col items-center gap-3">
         <div className="w-full flex flex-col gap-2 mb-6">
           <h2 className="text-headline2_B text-center">
@@ -218,13 +219,22 @@ export default function JoinPage() {
             <span className="text-caption1_R">[필수] 개인정보 수집 및 이용에 동의합니다.</span>
           </label>
         </div>
+
         <button 
           type="submit"
-          className="w-full py-4 bg-gray-100 border border-gray-300 rounded-xl font-bold hover:bg-primary-500 hover:text-white"
+          className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl font-bold hover:bg-primary-500 hover:text-white"
           onClick={handleJoin}
         >
           가입하기
         </button>
+
+        <div className="flex items-center mt-3 gap-3 w-full">
+          <span className="flex-1 h-px bg-gray-300" />
+          <Link to="/email-login" className="text-body1_R text-gray-500 whitespace-nowrap">
+            이전으로
+          </Link>
+          <span className="flex-1 h-px bg-gray-300" />
+        </div>
       </section>
     </div>
   )

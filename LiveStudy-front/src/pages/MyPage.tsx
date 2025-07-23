@@ -11,7 +11,7 @@ export default function MyPage() {
   return (
     <div className="w-full">
       <Header />
-      <section className="max-w-[1280px] h-[calc(100vh-100px)] m-auto p-6">
+      <section className="max-w-[1280px] sm:h-[calc(100vh-156px)] m-auto p-6">
         <h1 className="text-headline3_B">마이페이지</h1>
         <div className="flex flex-col gap-6 pt-6">
           <h2 className="font-semibold">유저 정보</h2>
