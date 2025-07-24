@@ -3,42 +3,66 @@ import { FiMail, FiSend, FiX } from "react-icons/fi";
 import { useAuthStore } from "../store/authStore";
 import MessageItem from "./MessageItem";
 import { sendMessageToServer } from "../lib/api/messageApi";
-import type { MessageItemProps, MessageModalProps } from "../types/Message";
+import type { MessageItemProps } from "../types/Message";
+import { setupMockSocketServer } from "../mocks/mockSocket";
+import type { MockMessageModalProps } from "../types/MockMessage";
 
-
-export default function MessageModal({ open, onClose }: MessageModalProps) {
-  const [messages, setMessage] = useState<MessageItemProps[]>([])
-  const [input, setInput] = useState("")
+export default function MessageModal({ open, onClose, useMock = false }: MockMessageModalProps) {
+  const [messages, setMessage] = useState<MessageItemProps[]>([]);
+  const [input, setInput] = useState("");
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
-  const userInfo = useAuthStore((state) => state.user)
+  const userInfo = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    if(!open) return;
-  }, [open])
+    if (!open) return;
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !useMock) return;
+
+    setupMockSocketServer();
+
+    const ws = new WebSocket("ws://localhost:1234");
+    ws.onmessage = (event) => {
+      const data: MessageItemProps = JSON.parse(event.data);
+      setMessage((prev) => [...prev, data]);
+    };
+
+    setSocket(ws);
+
+    return () => {
+      ws.close();
+      setSocket(null);
+    };
+  }, [open, useMock]);
 
   const handleSend = async () => {
-    if(!input.trim()) return;
+    if (!input.trim()) return;
 
-    // const message = input.trim()
     const newMessage: MessageItemProps = {
       id: String(Date.now()),
       username: String(userInfo?.username),
       profileImage: "https://picsum.photos/200/300",
-      time: new Date().toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
+      time: new Date().toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
       }),
       text: input.trim(),
-    }
+    };
 
     try {
-      await sendMessageToServer(newMessage);
-      setMessage(prev => [...prev, newMessage])
-      setInput('')
+      if (useMock && socket) {
+        socket.send(JSON.stringify(newMessage));
+      } else {
+        await sendMessageToServer(newMessage);
+      }
+      setMessage((prev) => [...prev, newMessage]);
+      setInput("");
     } catch (error) {
-      console.error('메시지 전송 실패:', error)
+      console.error("메시지 전송 실패:", error);
     }
-  }
+  };
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,6 +85,7 @@ export default function MessageModal({ open, onClose }: MessageModalProps) {
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 text-sm">
         {messages.map((msg) => (
             <MessageItem
+            key={msg.id}
             username={msg.username}
             profileImage={msg.profileImage}
             text={msg.text}
