@@ -8,6 +8,8 @@ import VideoReportModal from './VideoReportModal'
 const VideoGrid = () => {
   const [reportTarget, setReportTarget] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState<string>('');
+  const [statusColors, setStatusColors] = useState<Record<string, boolean>>({});
+
 
   // 신고 제출 처리
   const openModal = (identity: string) => {
@@ -29,6 +31,15 @@ const VideoGrid = () => {
     alert('신고가 접수되었습니다.');
     closeModal();
   };
+
+  // 집중, 휴식 상태 처리
+  const toggleStatusColor = (identity: string) => {
+    setStatusColors((prev) => ({
+      ...prev,
+      [identity]: !prev[identity],
+    }));
+  };
+
 
 
   // 현재 참여 중인 트랙을 가져옴
@@ -60,7 +71,12 @@ const VideoGrid = () => {
             {/* 비디오 영역 */}
             <div className="w-full h-full bg-gray-200 rounded-md relative">
               {/* 상태 표시 */}
-              <div className="absolute top-1 left-1 w-2 h-2 rounded-full bg-green-500" />
+              <div
+                onClick={() => toggleStatusColor(identity)}
+                className={`absolute top-1 left-1 w-2 h-2 rounded-full cursor-pointer z-50 ${
+                  statusColors[identity] ? 'bg-red-500' : 'bg-green-500'
+                }`}
+              />
               <div className="absolute top-1 right-1 flex justify-center items-center gap-[0.2rem] mt-[0.1rem]">
                 <span className="text-caption2_M text-white bg-black/50 px-1 rounded">01:59:59</span>
               </div>
