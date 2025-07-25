@@ -24,61 +24,67 @@ a {
 
 /* ------------------------------------------------------------------------------------------------ */
 
+/* @layer base {
+  * {
+    @apply transition-all duration-300;
+  }
+} */
+
 @layer components {
   /* 버튼 스타일 */
 
   /* 고정 사이즈(버튼이 하나 크게 사용될 때) */
   /* 가장 큰 사이즈 rounded full */
   .max-round-button-white {
-    @apply min-w-[180px] px-9 py-4 bg-white border border-gray-300 rounded-full font-bold;
+    @apply min-w-[180px] px-9 py-4 bg-white border border-gray-100 rounded-full font-bold;
   }
 
   .max-round-button-gray {
-    @apply min-w-[180px] px-9 py-4 bg-gray-100 border border-gray-300 rounded-full font-bold;
+    @apply min-w-[180px] px-9 py-4 bg-gray-100 border border-gray-100 rounded-full font-bold;
   }
 
   .max-round-button-primary {
-    @apply min-w-[180px] px-9 py-4 bg-primary-500 border border-gray-300 rounded-full font-bold text-white;
+    @apply min-w-[180px] px-9 py-4 bg-primary-500 rounded-full font-bold text-white;
   }
 
   /* 고정 사이즈(버튼이 2개 붙어져 사용할 때) */
   /* 가장 큰 사이즈 rounded-12px */
   .max-button-white {
-    @apply min-w-[180px] px-9 py-4 bg-white border border-gray-300 rounded-xl font-bold;
+    @apply min-w-[180px] px-9 py-4 bg-white border border-gray-100 rounded-xl font-bold;
   }
 
   .max-button-gray {
-    @apply min-w-[180px] px-9 py-4 bg-gray-100 border border-gray-300 rounded-xl font-bold;
+    @apply min-w-[180px] px-9 py-4 bg-gray-100 border border-gray-100 rounded-xl font-bold;
   }
 
   .max-button-primary {
-    @apply min-w-[180px] px-9 py-4 bg-primary-500 border border-gray-300 rounded-xl font-bold text-white;
+    @apply min-w-[180px] px-9 py-4 bg-primary-500 rounded-xl font-bold text-white;
   }
 
   /* 가변 사이즈 최소 사이즈 적용(120px) */
   .middle-button-white {
-    @apply min-w-[120px] px-6 py-2 bg-white border border-gray-300 rounded-[8px] font-medium;
+    @apply min-w-[120px] px-6 py-2 bg-white border border-gray-100 rounded-lg font-medium;
   }
 
   .middle-button-gray {
-    @apply min-w-[120px] px-6 py-2 bg-gray-100 border border-gray-300 rounded-[8px] font-medium;
+    @apply min-w-[120px] px-6 py-2 bg-gray-100 border border-gray-100 rounded-lg font-medium;
   }
 
   .middle-button-primary {
-    @apply min-w-[120px] px-6 py-2 bg-primary-500 border border-gray-300 rounded-[8px] font-medium;
+    @apply min-w-[120px] px-6 py-2 bg-primary-500 rounded-lg font-medium;
   }
 
   /* 가변 사이즈 기본 */
-  .middle-button-white {
-    @apply px-6 py-2 bg-white border border-gray-300 rounded-[8px] font-normal;
+  .basic-button-white {
+    @apply w-auto whitespace-nowrap px-6 py-2 bg-white border border-gray-100 rounded-lg font-normal;
   }
 
-  .middle-button-gray {
-    @apply px-6 py-2 bg-gray-100 border border-gray-300 rounded-[8px] font-normal;
+  .basic-button-gray {
+    @apply w-auto whitespace-nowrap px-6 py-2 bg-gray-100 border border-gray-300 rounded-lg font-normal;
   }
 
-  .middle-button-primary {
-    @apply px-6 py-2 bg-primary-500 border border-gray-300 rounded-[8px] font-normal;
+  .basic-button-primary {
+    @apply w-auto whitespace-nowrap px-6 py-2 bg-primary-500 rounded-lg font-normal;
   }
 
   /* ------------------------------------------------------------------------------------------------ */
@@ -87,19 +93,19 @@ a {
 
   /* 헤드라인(타이틀) */
   .text-headline1_B {
-    @apply text-4xl font-bold tracking-[-0.5px];
+    @apply text-4xl font-bold;
   }
 
   .text-headline2_B {
-    @apply text-3xl font-bold tracking-[-0.5px];
+    @apply text-3xl font-bold;
   }
 
   .text-headline3_B {
-    @apply text-2xl font-bold tracking-[-0.5px];
+    @apply text-2xl font-bold;
   }
 
   .text-headline4_B {
-    @apply text-xl font-semibold tracking-[-0.5px];
+    @apply text-xl font-semibold;
   }
 
   /* 본문(Body) */
@@ -126,5 +132,13 @@ a {
 
   .text-caption2_M {
     @apply text-xs font-medium;
+  }
+
+  .text-caption1_R {
+    @apply text-sm font-normal;
+  }
+
+  .text-caption2_R {
+    @apply text-xs font-normal;
   }
 }
