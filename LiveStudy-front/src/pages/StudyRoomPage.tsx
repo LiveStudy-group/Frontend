@@ -84,7 +84,8 @@ const StudyRoomPage = () => {
 
           {/* 메시지 버튼 및 모달 */}
           <MessageButton onClick={() => setIsModalOpen(true)} />
-          <MessageModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+          <MessageModal open={isModalOpen} onClose={() => setIsModalOpen(false)} useMock={true} />
+          {/* <MockMessageTest /> */}
         </main>
         
         {/* 공통 푸터 컴포넌트 */}
