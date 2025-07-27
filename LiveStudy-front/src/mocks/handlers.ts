@@ -41,8 +41,8 @@ export const handlers = [
   rest.post('/api/auth/login', async (req, res, ctx) => {
     const { email, password } = await req.json();
 
-    // 테스트용 계정만 로그인 허용
-    if(email === 'test@example.com' && password === '1234') {
+    // 테스트용 계정 1
+    if(email === 'test1@example.com' && password === '1234') {
       return res(
         ctx.status(200),
         ctx.json({
@@ -51,10 +51,26 @@ export const handlers = [
             uid: 'test-uid-1234',
             email,
             username: '테스트 유저',
-            token: 'fake-jwt-token'
+            token: 'fake-jwt-token-1'
           }
         })
-      )
+      );
+    }
+
+    // 테스트용 계정 2
+    if(email === 'test2@example.com' && password === '1234') {
+      return res(
+        ctx.status(200),
+        ctx.json({
+          message: '로그인 성공',
+          user: {
+            uid: 'test-uid-5678',
+            email,
+            username: '서브 유저',
+            token: 'fake-jwt-token-2'
+          }
+        })
+      );
     }
 
     return res(
