@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { MdReport } from 'react-icons/md';
 import LiveVideoBox from './LiveVideoBox';
 import VideoReportModal from './VideoReportModal'
+import { MdVisibility, MdVisibilityOff } from 'react-icons/md';
 
 const VideoGrid = () => {
   const [reportTarget, setReportTarget] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [statusColors, setStatusColors] = useState<Record<string, boolean>>({});
+  const [hiddenParticipants, setHiddenParticipants] = useState<Record<string, boolean>>({});
+
 
 
   // 신고 제출 처리
@@ -46,6 +49,14 @@ const VideoGrid = () => {
   const tracks = useTracks([
     { source: Track.Source.Camera, withPlaceholder: true, onlySubscribed: false },
   ]);
+  
+  // 유저 화면 가리기
+  const toggleHide = (identity: string) => {
+    setHiddenParticipants((prev) => ({
+      ...prev,
+      [identity]: !prev[identity],
+    }));
+  };
 
   return (
     <>
@@ -82,10 +93,30 @@ const VideoGrid = () => {
               </div>
 
               {/* 화상 스트림 */}
-              <LiveVideoBox participant={participant} />
+              {hiddenParticipants[identity] ? (
+                <div className="flex items-center justify-center w-full h-full bg-gray-300 text-sm text-gray-600 text-center px-2">
+                  <p>
+                    <span className="font-semibold text-black">{identity}</span>님의 화면은 현재 가려졌습니다.
+                  </p>
+                </div>
+              ) : (
+                <LiveVideoBox participant={participant} />
+              )}
+
 
               {/* 하단 정보 영역 */}
               <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-black/40 text-white text-xs flex items-center justify-center">
+               <button
+                className="absolute right-8 text-gray-300 hover:text-gray-500"
+                onClick={() => toggleHide(identity)}
+              >
+                {hiddenParticipants[identity] ? (
+                  <MdVisibility size={16} />
+                ) : (
+                  <MdVisibilityOff size={16} />
+                )}
+              </button>
+
                 <div className="flex items-center space-x-1">
                   <span className="text-sm">🌱</span>
                   <span className="text-caption1_M text-lime-400 font-semibold">칭호</span>
