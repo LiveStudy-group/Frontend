@@ -63,7 +63,7 @@ export const handlers = [
     )
   }),
   
-  rest.post('/api/users/me/avatar', async (req, res, ctx) => {
+  rest.post('/api/user/profile/change/profileImageUrl', async (req, res, ctx) => {
     return res(
       ctx.status(200),
       ctx.json({
@@ -72,8 +72,9 @@ export const handlers = [
     )
   }),
 
-  rest.put('/api/users/me/nickname', async (req, res, ctx) => {
-    const { nickname } = await req.json();
+  // 기존 닉네임 변경 핸들러 제거됨
+  rest.patch('/api/user/profile/change/username', async (req, res, ctx) => {
+    const { nickname, profileImageUrl, titleId } = await req.json();
 
     if (!nickname || nickname.length < 2) {
       return res(
@@ -84,7 +85,14 @@ export const handlers = [
 
     return res(
       ctx.status(200),
-      ctx.json({ message: '닉네임 변경 완료', nickname })
+      ctx.json({
+        user: {
+          userId: 101,
+          nickname,
+          profileImageUrl,
+          title: `칭호-${titleId}`,
+        }
+      })
     );
   }),
 ]
