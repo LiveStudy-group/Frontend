@@ -61,5 +61,30 @@ export const handlers = [
       ctx.status(401),
       ctx.json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.'})
     )
-  }) 
+  }),
+  
+  rest.post('/api/users/me/avatar', async (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        imageUrl: `https://picsum.photos/100/100?random=${Date.now()}`,
+      })
+    )
+  }),
+
+  rest.put('/api/users/me/nickname', async (req, res, ctx) => {
+    const { nickname } = await req.json();
+
+    if (!nickname || nickname.length < 2) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: '닉네임은 2자 이상이어야 합니다.' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({ message: '닉네임 변경 완료', nickname })
+    );
+  }),
 ]
