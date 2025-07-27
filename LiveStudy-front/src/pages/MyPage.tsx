@@ -1,12 +1,65 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { FiChevronDown } from "react-icons/fi";
+import { useAuthStore } from "../store/authStore";
 
 const titles = ['🥕 꾸준함의 씨앗', '🔥 불타는 집중왕', '🏋🏼‍♂️ 철인 집중력', '📚 스터디 마스터']
 
 export default function MyPage() {
+  const { user } = useAuthStore();
   const [selectedTitle, setSelectedTitle] = useState(titles[0])
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [profileImage, setProfileImage] = useState(user?.profileImageUrl || "/img/my-page-profile-image-1.jpg");
+  const [username, setUsername] = useState(user?.username || "");
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    try {
+      const res = await fetch("/api/user/profile/change/profileImageUrl", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.imageUrl) {
+        setProfileImage(data.imageUrl);
+      }
+    } catch (error) {
+      console.error("이미지 업로드 실패", error);
+    }
+  };
+
+  const handleUsernameSave = async () => {
+    try {
+      const res = await fetch("/api/user/profile/change/username", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nickname: username,
+          profileImageUrl: profileImage,
+          titleId: titles.indexOf(selectedTitle) + 1, // 칭호 리스트 인덱스를 기반으로 id 생성 (API 요구사항에 맞춤)
+        }),
+      });
+      if (!res.ok) throw new Error("닉네임 업데이트 실패");
+
+      const data = await res.json();
+      if (user) {
+        user.username = data.user.nickname;
+      }
+
+      setIsEditingUsername(false);
+    } catch (err) {
+      console.error("닉네임 저장 실패:", err);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -22,24 +75,68 @@ export default function MyPage() {
             <div className="w-full sm:w-auto">
               <h3 className="min-w-[112px] text-body1_M">프로필 이미지</h3>
             </div>
-            <div className="flex-1">
-              <img src="/public/img/my-page-profile-image-1.jpg" alt="프로필 이미지" className="w-10 h-10w-10 bg-gray-300 rounded-full border border-gray-300" />
+            <div className="flex-1 flex items-center justify-between gap-4">
+              <img
+                src={profileImage}
+                alt="프로필 이미지"
+                className="w-10 h-10 bg-gray-300 rounded-full border border-gray-300 object-cover"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="basic-button-gray hover:bg-gray-200 text-body1_R"
+              >
+                프로필 이미지 변경
+              </button>
             </div>
-            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
-              프로필 이미지 변경
-            </button>
           </div>
           
           <div className="flex flex-wrap justify-between items-center gap-3 sm:gap-6">
             <div className="w-full sm:w-auto">
               <h3 className="min-w-[112px] text-body1_M">유저 닉네임</h3>
             </div>
-            <div className="flex-1">
-              <p className="text-caption1_M text-primary-500">홍길동</p>
+            <div className="flex-1 flex justify-between items-center gap-4">
+              {isEditingUsername ? (
+                <>
+                  <input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
+                  />
+                  <button
+                    onClick={handleUsernameSave}
+                    className="basic-button-primary hover:bg-primary-600 text-white"
+                  >
+                    저장
+                  </button>
+                  <button
+                    onClick={() => {
+                      setUsername(user?.username || "");
+                      setIsEditingUsername(false);
+                    }}
+                    className="basic-button-gray hover:bg-gray-200"
+                  >
+                    취소
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="w-full text-caption1_M text-primary-500">{username}</p>
+                  <button
+                    onClick={() => setIsEditingUsername(true)}
+                    className="basic-button-gray hover:bg-gray-200 text-body1_R"
+                  >
+                    닉네임 변경
+                  </button>
+                </>
+              )}
             </div>
-            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
-              닉네임 변경
-            </button>
           </div>
 
           <div className="flex flex-wrap justify-between items-center gap-3 sm:gap-6">
@@ -47,7 +144,7 @@ export default function MyPage() {
               <h3 className="min-w-[112px] text-body1_M ">이메일 주소</h3>
             </div>
             <div className="flex-1">
-              <p className="text-caption1_M text-primary-500">bosv031999@gmail.com</p>
+              <p className="text-caption1_M text-primary-500">{user?.email}</p>
             </div>
             <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
               이메일 변경

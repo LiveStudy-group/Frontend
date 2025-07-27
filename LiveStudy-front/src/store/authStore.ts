@@ -7,10 +7,13 @@ interface AuthState {
     uid: string;
     email: string;
     username: string;
+    profileImageUrl?: string;
+    title?: string;
   } | null
   token: string | null;
 
-  login: (user: { uid: string; email: string; username: string }, token: string) => void;
+  updateUser: (updates: Partial<AuthState["user"]>) => void;
+  login: (user: { uid: string; email: string; username: string; profileImageUrl?: string }, token: string) => void;
   logout: () => void;
 }
 
@@ -22,11 +25,18 @@ export const useAuthStore = create<AuthState>()(
         uid: '',
         email: '',
         username: '',
+        profileImageUrl: '',
+        title: '',
       },
       token: null,
 
-      login: ({ uid, email, username }: { uid: string; email: string; username: string }, token: string) => {
-        set({ user: { uid, email, username }, token, isLoggedIn: true });
+      updateUser: (updates) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates } : null,
+        })),
+
+      login: ({ uid, email, username, profileImageUrl, title }: { uid: string; email: string; username: string; profileImageUrl?: string, title?: string }, token: string) => {
+        set({ user: { uid, email, username, profileImageUrl, title }, token, isLoggedIn: true });
       },
       logout: () => 
         set({ isLoggedIn: false, user: null, token: null }),

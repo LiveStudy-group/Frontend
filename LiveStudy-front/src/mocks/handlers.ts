@@ -76,6 +76,39 @@ export const handlers = [
     return res(
       ctx.status(401),
       ctx.json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.'})
+    )
+  }),
+  
+  rest.post('/api/user/profile/change/profileImageUrl', async (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        imageUrl: `https://picsum.photos/100/100?random=${Date.now()}`,
+      })
+    )
+  }),
+
+  // 기존 닉네임 변경 핸들러 제거됨
+  rest.patch('/api/user/profile/change/username', async (req, res, ctx) => {
+    const { nickname, profileImageUrl, titleId } = await req.json();
+
+    if (!nickname || nickname.length < 2) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: '닉네임은 2자 이상이어야 합니다.' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        user: {
+          userId: 101,
+          nickname,
+          profileImageUrl,
+          title: `칭호-${titleId}`,
+        }
+      })
     );
-  }) 
+  }),
 ]
