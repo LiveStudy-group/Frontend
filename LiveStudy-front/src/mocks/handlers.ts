@@ -112,6 +112,7 @@ export const handlers = [
     );
   }),
 
+  // 스터디룸 입장 핸들러
   rest.post('/api/study-room/enter', async (req, res, ctx) => {
     const { userId, roomId } = await req.json();
 
@@ -138,5 +139,39 @@ export const handlers = [
       })
     );
   }),
+
+
+  // 스터디룸 퇴장 핸들러
+  rest.post('/api/study-room/exit', async (req, res, ctx) => {
+    const { userId, roomId } = await req.json();
+
+    if (!userId || !roomId) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: 'userId 또는 roomId가 누락되었습니다.' })
+      );
+    }
+
+    if (userId === 'alreadyExitedUser') {
+      return res(
+        ctx.status(409),
+        ctx.json({
+          status: 409,
+          errorCode: 'ALREADY_EXITED',
+          message: '이미 방에서 퇴장된 상태입니다.',
+        })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        status: 200,
+        errorCode: null,
+        message: '공개방 퇴장 성공',
+      })
+    );
+  }),
+
 
 ]

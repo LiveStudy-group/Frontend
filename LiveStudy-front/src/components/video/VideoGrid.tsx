@@ -1,10 +1,9 @@
 import { useTracks } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { useState } from 'react';
-import { MdReport } from 'react-icons/md';
+import { MdReport, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import LiveVideoBox from './LiveVideoBox';
-import VideoReportModal from './VideoReportModal'
-import { MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import VideoReportModal from './VideoReportModal';
 
 const VideoGrid = () => {
   const [reportTarget, setReportTarget] = useState<string | null>(null);
@@ -43,8 +42,6 @@ const VideoGrid = () => {
     }));
   };
 
-
-
   // 현재 참여 중인 트랙을 가져옴
   const tracks = useTracks([
     { source: Track.Source.Camera, withPlaceholder: true, onlySubscribed: false },
@@ -70,7 +67,7 @@ const VideoGrid = () => {
         onClose={closeModal}
       />
 
-    <section className="flex-1 p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto">
+    <section className="flex-1 px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto">
       {tracks.map(({ participant }, idx) => {
         const identity = participant.identity;
 
