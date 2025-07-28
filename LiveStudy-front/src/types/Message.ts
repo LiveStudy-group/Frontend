@@ -1,10 +1,11 @@
 export interface MessageItemProps {
-  id?: string;
+  senderId?: string;
+  studyroomId?: number;
   username: string;
   profileImage: string;
-  text: string;
-  time: string;
-  isMyMessage?: boolean;
+  message: string;
+  timestamp: string;
+  isMyMessage: boolean;
 }
 
 export interface MessageModalProps {

@@ -13,7 +13,7 @@ export const setupMockSocketServer = () => {
     socket.on('message', (data) => {
       console.log('[MockSocket]', data);
 
-      socket.send(`[서버 응답] ${data}`);
+      socket.send(data);
     })
 
     socket.on('close', () => {

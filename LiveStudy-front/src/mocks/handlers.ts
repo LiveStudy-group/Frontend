@@ -111,7 +111,7 @@ export const handlers = [
       })
     );
   }),
-
+  
   rest.post('/api/study-room/enter', async (req, res, ctx) => {
     const { userId, roomId } = await req.json();
 
@@ -138,5 +138,4 @@ export const handlers = [
       })
     );
   }),
-
 ]
