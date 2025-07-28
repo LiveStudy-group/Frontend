@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+import axios, { AxiosError } from 'axios';
 import { createLocalTracks } from 'livekit-client';
+import { useNavigate } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import Header from '../components/common/Header';
+
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -31,7 +33,19 @@ const MainPage = () => {
       return;
     }
 
-    navigate('/studyroom/fff');
+    try {
+      const response = await axios.post('/api/study-room/enter', {
+        userId: 'test-user-id',
+        roomId: 'study-room-123',
+      });
+
+      const { roomId } = response.data;
+      navigate(`/studyroom/${roomId}`);
+      
+    }catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      alert(err.response?.data?.message ?? '오류가 발생했습니다.');
+    }
   };
 
   return (
