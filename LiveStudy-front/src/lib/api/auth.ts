@@ -18,6 +18,8 @@ interface LoginResponse {
     uid: string;
     email: string;
     username: string;
+    title?: string;
+    profileImageUrl?: string;
     token: string;
   }
 }

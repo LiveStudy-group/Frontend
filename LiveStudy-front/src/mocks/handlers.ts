@@ -111,4 +111,23 @@ export const handlers = [
       })
     );
   }),
+
+  rest.get('http://localhost:5001/token', (req, res, ctx) => {
+    const identity = req.url.searchParams.get('identity');
+    const roomName = req.url.searchParams.get('roomName');
+
+    if (!identity || !roomName) {
+      return res(
+        ctx.status(400),
+        ctx.json({ error: 'Missing identity or roomName' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        token: `mock-token-for-${identity}-in-${roomName}`,
+      })
+    );
+  }),
 ]

@@ -3,9 +3,9 @@ import { FiMail, FiSend, FiX } from "react-icons/fi";
 import { useAuthStore } from "../store/authStore";
 import MessageItem from "./MessageItem";
 import { sendMessageToServer } from "../lib/api/messageApi";
-import type { MessageItemProps } from "../types/Message";
 import { setupMockSocketServer } from "../mocks/mockSocket";
 import type { MockMessageModalProps } from "../types/MockMessage";
+import type { MessageItemProps } from "../types/Message";
 
 export default function MessageModal({ open, onClose, useMock = false }: MockMessageModalProps) {
   const [messages, setMessage] = useState<MessageItemProps[]>([]);
@@ -13,10 +13,6 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userInfo = useAuthStore((state) => state.user);
-
-  useEffect(() => {
-    if (!open) return;
-  }, [open]);
 
   useEffect(() => {
     if (!open || !useMock) return;
@@ -41,14 +37,13 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
     if (!input.trim()) return;
 
     const newMessage: MessageItemProps = {
-      id: String(Date.now()),
+      studyroomId: 1,
+      senderId: userInfo?.uid,
       username: String(userInfo?.username),
-      profileImage: "https://picsum.photos/200/300",
-      time: new Date().toLocaleTimeString("ko-KR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      text: input.trim(),
+      profileImage: userInfo?.profileImageUrl || "https://picsum.photos/200/300",
+      timestamp: new Date().toISOString(),
+      message: input.trim(),
+      isMyMessage: true,
     };
 
     try {
@@ -56,8 +51,8 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
         socket.send(JSON.stringify(newMessage));
       } else {
         await sendMessageToServer(newMessage);
+        setMessage((prev) => [...prev, newMessage]);
       }
-      setMessage((prev) => [...prev, newMessage]);
       setInput("");
     } catch (error) {
       console.error("메시지 전송 실패:", error);
@@ -83,16 +78,22 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 text-sm">
-        {messages.map((msg) => (
-            <MessageItem
-            key={msg.id}
+        {messages.map((msg, i) => {
+            console.log("msg.senderId:", msg.senderId);
+            console.log("userInfo.uid:", userInfo?.uid);
+            console.log("timestamp:", msg.timestamp);
+
+            return (<MessageItem
+            key={i}
+            studyroomId={1}          
+            senderId={msg.senderId}
             username={msg.username}
             profileImage={msg.profileImage}
-            text={msg.text}
-            time={msg.time}
-            isMyMessage={true}
-          />        
-        ))}
+            message={msg.message}
+            timestamp={msg.timestamp}
+            isMyMessage={String(msg.senderId) === String(userInfo?.uid ?? "")}
+          />)         
+        })}
         <div ref={messageEndRef} />
       </div>
 
