@@ -111,4 +111,32 @@ export const handlers = [
       })
     );
   }),
+
+  rest.post('/api/study-room/enter', async (req, res, ctx) => {
+    const { userId, roomId } = await req.json();
+
+    if (!userId || !roomId) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: 'userId 또는 roomId가 누락되었습니다.' })
+      );
+    }
+
+    if (userId === 'alreadyInRoomUser') {
+      return res(
+        ctx.status(409),
+        ctx.json({ message: '이미 해당 방에 입장 중입니다.' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        status: 200,
+        roomId,
+        message: '공개방 입장 성공',
+      })
+    );
+  }),
+
 ]
