@@ -79,6 +79,7 @@ export const handlers = [
     )
   }),
   
+  // 프로필 이미지(default Image)
   rest.post('/api/user/profile/change/profileImageUrl', async (req, res, ctx) => {
     return res(
       ctx.status(200),
@@ -111,7 +112,66 @@ export const handlers = [
       })
     );
   }),
-  
+
+  // 이메일 주소 변경
+  rest.patch('/api/user/profile/change/email', async (req, res, ctx) => {
+    const { email } = await req.json();
+
+    if (!email || !email.includes('@')) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: '올바른 이메일 주소를 입력해주세요.' })
+      );
+    }
+
+    if (email === 'existing@example.com') {
+      return res(
+        ctx.status(409),
+        ctx.json({ message: '이미 사용 중인 이메일입니다.' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        user: {
+          email,
+        }
+      })
+    );
+  }),
+
+  // 비밀번호 변경
+  rest.patch('/api/user/profile/change/password', async (req, res, ctx) => {
+    const { currentPassword, newPassword } = await req.json();
+
+    if (!currentPassword || !newPassword) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: '현재 비밀번호와 새 비밀번호를 모두 입력해주세요.' })
+      );
+    }
+
+    if (currentPassword !== '1234') {
+      return res(
+        ctx.status(403),
+        ctx.json({ message: '현재 비밀번호가 일치하지 않습니다.' })
+      );
+    }
+
+    if (newPassword.length < 4) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: '새 비밀번호는 최소 4자 이상이어야 합니다.' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({ message: '비밀번호가 성공적으로 변경되었습니다.' })
+    );
+  }),
+
   rest.post('/api/study-room/enter', async (req, res, ctx) => {
     const { userId, roomId } = await req.json();
 

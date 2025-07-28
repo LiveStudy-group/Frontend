@@ -12,8 +12,6 @@ const VideoGrid = () => {
   const [statusColors, setStatusColors] = useState<Record<string, boolean>>({});
   const [hiddenParticipants, setHiddenParticipants] = useState<Record<string, boolean>>({});
 
-
-
   // 신고 제출 처리
   const openModal = (identity: string) => {
     setReportTarget(identity);
@@ -42,8 +40,6 @@ const VideoGrid = () => {
       [identity]: !prev[identity],
     }));
   };
-
-
 
   // 현재 참여 중인 트랙을 가져옴
   const tracks = useTracks([
@@ -103,10 +99,9 @@ const VideoGrid = () => {
                 <LiveVideoBox participant={participant} />
               )}
 
-
               {/* 하단 정보 영역 */}
               <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-black/40 text-white text-xs flex items-center justify-center">
-               <button
+              <button
                 className="absolute right-8 text-gray-300 hover:text-gray-500"
                 onClick={() => toggleHide(identity)}
               >
