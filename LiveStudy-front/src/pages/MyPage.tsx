@@ -1,14 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { FiChevronDown } from "react-icons/fi";
 import { useAuthStore } from "../store/authStore";
 
-const titles = ['🥕 꾸준함의 씨앗', '🔥 불타는 집중왕', '🏋🏼‍♂️ 철인 집중력', '📚 스터디 마스터']
-
 export default function MyPage() {
-  const { user } = useAuthStore();
-  const [selectedTitle, setSelectedTitle] = useState(titles[0])
+  const { user, updateUser } = useAuthStore();
+  const [titles, setTitles] = useState<{ name: string; key: string; type: string; description: string; acquiredAt: string }[]>([]);
+  const [selectedTitle, setSelectedTitle] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [profileImage, setProfileImage] = useState(user?.profileImageUrl || "/img/my-page-profile-image-1.jpg");
   const [username, setUsername] = useState(user?.username || "");
@@ -18,6 +17,26 @@ export default function MyPage() {
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+
+useEffect(() => {
+  const fetchTitles = async () => {
+    try {
+      const res = await fetch("/api/user/titles");
+      const data = await res.json();
+      setTitles(data.titles);
+
+      // 현재 대표 칭호의 key를 초기값으로 세팅
+      if (user?.title?.key) {
+        setSelectedTitle(user.title.key);
+      } else if (data.titles.length > 0) {
+        setSelectedTitle(data.titles[0].key);
+      }
+    } catch (error) {
+      console.error("칭호 목록 가져오기 실패:", error);
+    }
+  };
+  fetchTitles();
+}, []);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,14 +69,13 @@ export default function MyPage() {
         body: JSON.stringify({
           nickname: username,
           profileImageUrl: profileImage,
-          titleId: titles.indexOf(selectedTitle) + 1, // 칭호 리스트 인덱스를 기반으로 id 생성 (API 요구사항에 맞춤)
         }),
       });
       if (!res.ok) throw new Error("닉네임 업데이트 실패");
 
       const data = await res.json();
       if (user) {
-        user.username = data.user.nickname;
+        user.username = data.user.username;
       }
 
       setIsEditingUsername(false);
@@ -103,6 +121,28 @@ export default function MyPage() {
       setIsEditingPassword(false);
     } catch (error) {
       console.error("비밀번호 저장 실패:", error);
+    }
+  };
+
+  
+  const handleTitleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setSelectedTitle(selected);
+
+    try {
+      const res = await fetch("/api/user/titles/represent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titleKey: selected }),
+      });
+
+      const data = await res.json();
+
+      if (user) {
+        updateUser({ title: data.title }); // ✅ 여기서 title 업데이트
+      }
+    } catch (err) {
+      console.error("대표 칭호 변경 실패:", err);
     }
   };
 
@@ -286,12 +326,12 @@ export default function MyPage() {
             <div className="relative w-full sm:w-64">
               <select
                 value={selectedTitle}
-                onChange={(e) => setSelectedTitle(e.target.value)}
+                onChange={handleTitleChange}
                 className="w-full appearance-none bg-gray-100 border border-gray-300 text-body1_M px-4 py-2 rounded-md shadow-inner focus:ring-2 focus:ring-primary-400 focus:outline-none"
               >
                 {titles.map((title, idx) => (
-                  <option key={idx} value={title}>
-                    {title}
+                  <option key={idx} value={title.key}>
+                    {title.name}
                   </option>
                 ))}
               </select>

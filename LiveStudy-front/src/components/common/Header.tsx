@@ -8,7 +8,10 @@ const Header = () => {
 
   const user = useAuthStore((state) => state.user)
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn)
-  const logout = useAuthStore((state) => state.logout)
+  const logout = useAuthStore((state) => {
+    console.log('[Header] user 정보:', user);
+    return state.logout;
+  })
   const navigate = useNavigate()
 
   const toggleMenu = () => {
@@ -31,6 +34,9 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  console.log('현재 로그인한 유저 정보: ',user)
+  console.log('현재 로그인한 유저 칭호', user?.title?.name)
+
   return (
     <header className="w-full border-b border-gray-100 z-50">
       <div className="max-w-[1280px] mx-auto px-4 py-4 flex justify-between items-center">
@@ -42,13 +48,19 @@ const Header = () => {
         <div className="flex items-center space-x-4">
           {isLoggedIn ? (
             <div className="text-sm text-right">
-            <div>
-              환영합니다. <strong>{user?.username}님 !</strong>
+              <div>
+                <span className="text-caption1_M">환영합니다 !</span>
+                {user?.title?.key === 'no-title' ? (
+                  <span className="text-gray-300 mx-1">대표 칭호를 선택해주세요.</span>
+                ) : (
+                  <span className="text-primary-400 mx-1">{user?.title?.icon} {user?.title?.name}</span>
+                )}
+                <span>{user?.username}님 !</span>
+              </div>
+              <div className="text-xs">
+                오늘 집중 시간 : <strong>02:03:56</strong>
+              </div>
             </div>
-            <div className="text-xs">
-              오늘 집중 시간 : <strong>02:03:56</strong>
-            </div>
-          </div>
           ) : (
             <div className="text-caption1_R text-gray-500 hover:text-primary-400 transition">
               <Link to={'/login'}>로그인</Link>
