@@ -112,6 +112,7 @@ export const handlers = [
     );
   }),
   
+  // 공개방 입장 핸들러
   rest.post('/api/study-room/enter', async (req, res, ctx) => {
     const { userId, roomId } = await req.json();
 
@@ -138,4 +139,23 @@ export const handlers = [
       })
     );
   }),
+
+  // 스터디룸 퇴장 핸들러
+  rest.post('/api/study-rooms/leave', async (req, res, ctx) => {
+    const url = new URL(req.url.toString());
+    const userId = url.searchParams.get('userId');
+
+    if (!userId) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: 'userId가 필요합니다.' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({ message: '퇴장 성공' })
+    );
+  }),
+
 ]
