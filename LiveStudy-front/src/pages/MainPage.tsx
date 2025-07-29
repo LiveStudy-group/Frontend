@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import Header from '../components/common/Header';
 
-
 const MainPage = () => {
   const navigate = useNavigate();
 
@@ -13,7 +12,7 @@ const MainPage = () => {
     const AudioContextClass =
       typeof window.AudioContext !== 'undefined'
         ? window.AudioContext
-        : (window as any).webkitAudioContext;
+        : window.webkitAudioContext!;
 
     const audioContext = new AudioContextClass();
 
