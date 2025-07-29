@@ -1,15 +1,35 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
-import Header from '../components/common/Header';
+import { useNavigate } from 'react-router-dom';
 import Footer from '../components/common/Footer';
-import VideoGrid from '../components/video/VideoGrid';
+import Header from '../components/common/Header';
 import MessageButton from '../components/MessageButton';
 import MessageModal from '../components/MessageModal';
+import VideoGrid from '../components/video/VideoGrid';
 
 const StudyRoomPage = () => {
+  const navigate = useNavigate();
   const [token, setToken] = useState('');
   const [identity, setIdentity] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+
+  // 스터디룸 퇴장 처리
+  const handleLeaveRoom = async () => {
+    try {
+      await axios.post(`/api/study-rooms/leave`, null, {
+        params: {
+          userId: identity, 
+        },
+      });
+
+      navigate('/main');
+    } catch (err) {
+      console.error('퇴장 실패:', err);
+      alert('스터디룸 퇴장 중 오류가 발생했습니다.');
+    }
+  };
 
   useEffect(() => {
     // 스터디룸 입장을 위한 토큰을 서버에서 요청
@@ -77,6 +97,15 @@ const StudyRoomPage = () => {
       {/* 공통 헤더 컴포넌트 */}
         <Header />
 
+      {/* 퇴장하기 버튼 */}
+        <div className="w-full max-w-[1280px] mx-auto flex justify-end p-4">
+          <button
+            onClick={handleLeaveRoom}
+            className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600"
+          >
+            퇴장하기
+          </button>
+        </div>
         <main className="flex-1 w-full max-w-[1280px] mx-auto flex overflow-hidden">
 
           {/* 화상 공유 컴포넌트 */}
