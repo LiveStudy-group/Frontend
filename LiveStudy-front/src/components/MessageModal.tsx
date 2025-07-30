@@ -7,6 +7,11 @@ import { setupMockSocketServer } from "../mocks/mockSocket";
 import type { MockMessageModalProps } from "../types/MockMessage";
 import type { MessageItemProps } from "../types/Message";
 
+function checkLocalBlocked(senderId: string): boolean {
+  const blocked = JSON.parse(localStorage.getItem("blockedUsers") || "[]");
+  return blocked.includes(senderId);
+}
+
 export default function MessageModal({ open, onClose, useMock = false }: MockMessageModalProps) {
   const [messages, setMessage] = useState<MessageItemProps[]>([]);
   const [input, setInput] = useState("");
@@ -38,7 +43,7 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
 
     const newMessage: MessageItemProps = {
       studyroomId: 1,
-      senderId: userInfo?.uid,
+      senderId: userInfo?.uid ?? "",
       username: String(userInfo?.username),
       profileImage: userInfo?.profileImageUrl || "https://picsum.photos/200/300",
       timestamp: new Date().toISOString(),
@@ -63,7 +68,41 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages])
 
+  function filterDuplicateBlockedMessages(messages: MessageItemProps[]) {
+    const filtered: MessageItemProps[] = [];
+    let last: { senderId: string; message: string } | null = null;
+
+    for (const msg of messages) {
+      const isBlocked = checkLocalBlocked(msg.senderId);
+      const isSameBlocked = last?.senderId === msg.senderId &&
+                            last?.message === msg.message &&
+                            isBlocked;
+
+      console.log(`[filter] senderId: ${msg.senderId}, isBlocked: ${isBlocked}, msg: "${msg.message}"`);
+      if (isSameBlocked) {
+        console.log("→ 중복 차단 메시지 (동일 내용), skip!");
+        continue;
+      }
+
+      filtered.push(msg);
+      last = { senderId: msg.senderId, message: msg.message };
+    }
+
+    return filtered;
+  }
+
   if(!open) return null;
+
+  const displayedMessages = filterDuplicateBlockedMessages(messages);
+
+  const displayedMessagesWithContinuous = displayedMessages.map((msg, idx, arr) => {
+    const prevMsg = arr[idx - 1];
+    const isSameSender = prevMsg?.senderId === msg.senderId;
+    const isSameMessage = prevMsg?.message === msg.message;
+    const isBothBlocked = checkLocalBlocked(msg.senderId) && checkLocalBlocked(prevMsg?.senderId ?? "");
+    const isContinuous = isSameSender && (msg.isMyMessage || !isBothBlocked || !isSameMessage);
+    return { ...msg, isContinuous };
+  });
 
   return (
     <div className="fixed bottom-24 right-2 left-2 m-auto sm:mr-0 sm:bottom-24 sm:right-6 w-full max-w-[360px] h-3/4 sm:h-2/3 bg-white rounded-lg shadow-xl flex flex-col">
@@ -78,23 +117,30 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 text-sm">
-        {messages.map((msg, i) => {
-            console.log("msg.senderId:", msg.senderId);
-            console.log("userInfo.uid:", userInfo?.uid);
-            console.log("timestamp:", msg.timestamp);
-
-            return (<MessageItem
-            key={i}
-            studyroomId={1}          
-            senderId={msg.senderId}
-            username={msg.username}
-            profileImage={msg.profileImage}
-            message={msg.message}
-            timestamp={msg.timestamp}
-            isMyMessage={String(msg.senderId) === String(userInfo?.uid ?? "")}
-          />)         
-        })}
-        <div ref={messageEndRef} />
+        <>
+          {displayedMessagesWithContinuous.map((msg, idx, arr) => {
+            const prevMsg = arr[idx - 1];
+            const isMyMessage = String(msg.senderId) === String(userInfo?.uid ?? "");
+            const isBlockedUser = checkLocalBlocked(msg.senderId);
+            return (
+              <MessageItem
+                key={`${msg.timestamp}-${msg.senderId}`}
+                studyroomId={1}
+                senderId={msg.senderId}
+                username={msg.username}
+                profileImage={msg.profileImage}
+                message={msg.message}
+                timestamp={msg.timestamp}
+                isMyMessage={isMyMessage}
+                isContinuous={msg.isContinuous}
+                blocked={isBlockedUser}
+                prevMessageSenderId={prevMsg?.senderId}
+                prevMessageText={prevMsg?.message}
+              />
+            );
+          })}
+          <div ref={messageEndRef} />
+        </>
       </div>
 
       <div className="flex items-center gap-2 border-t border-gray-300 p-4">
