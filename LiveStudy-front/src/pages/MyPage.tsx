@@ -1,18 +1,42 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { FiChevronDown } from "react-icons/fi";
 import { useAuthStore } from "../store/authStore";
 
-const titles = ['🥕 꾸준함의 씨앗', '🔥 불타는 집중왕', '🏋🏼‍♂️ 철인 집중력', '📚 스터디 마스터']
-
 export default function MyPage() {
-  const { user } = useAuthStore();
-  const [selectedTitle, setSelectedTitle] = useState(titles[0])
+  const { user, updateUser } = useAuthStore();
+  const [titles, setTitles] = useState<{ name: string; key: string; type: string; description: string; acquiredAt: string }[]>([]);
+  const [selectedTitle, setSelectedTitle] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [profileImage, setProfileImage] = useState(user?.profileImageUrl || "/img/my-page-profile-image-1.jpg");
   const [username, setUsername] = useState(user?.username || "");
   const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [email, setEmail] = useState(user?.email || "");
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+useEffect(() => {
+  const fetchTitles = async () => {
+    try {
+      const res = await fetch("/api/user/titles");
+      const data = await res.json();
+      setTitles(data.titles);
+
+      // 현재 대표 칭호의 key를 초기값으로 세팅
+      if (user?.title?.key) {
+        setSelectedTitle(user.title.key);
+      } else if (data.titles.length > 0) {
+        setSelectedTitle(data.titles[0].key);
+      }
+    } catch (error) {
+      console.error("칭호 목록 가져오기 실패:", error);
+    }
+  };
+  fetchTitles();
+}, []);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,14 +69,13 @@ export default function MyPage() {
         body: JSON.stringify({
           nickname: username,
           profileImageUrl: profileImage,
-          titleId: titles.indexOf(selectedTitle) + 1, // 칭호 리스트 인덱스를 기반으로 id 생성 (API 요구사항에 맞춤)
         }),
       });
       if (!res.ok) throw new Error("닉네임 업데이트 실패");
 
       const data = await res.json();
       if (user) {
-        user.username = data.user.nickname;
+        user.username = data.user.username;
       }
 
       setIsEditingUsername(false);
@@ -61,10 +84,72 @@ export default function MyPage() {
     }
   };
 
+  const handleEmailSave = async () => {
+    try {
+      const res = await fetch('api/user/profile/change/email', {
+        method: "PATCH",
+        headers: { "Content-type" : "application/json"},
+        body: JSON.stringify({ email }),
+      });
+      if(!res.ok) throw new Error("이메일 변경 실패");
+      const data = await res.json();
+
+      if(user) user.email = data.user.email;
+
+      setIsEditingEmail(false);
+    } catch (error) {
+      console.error("이메일 저장 실패:", error);
+    }
+  }
+
+  const handlePasswordSave = async () => {
+    try {
+      const res = await fetch("/api/user/profile/change/password", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+      if (!res.ok) throw new Error("비밀번호 변경 실패");
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setIsEditingPassword(false);
+    } catch (error) {
+      console.error("비밀번호 저장 실패:", error);
+    }
+  };
+
+  
+  const handleTitleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    setSelectedTitle(selected);
+
+    try {
+      const res = await fetch("/api/user/titles/represent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titleKey: selected }),
+      });
+
+      const data = await res.json();
+
+      if (user) {
+        updateUser({ title: data.title }); // ✅ 여기서 title 업데이트
+      }
+    } catch (err) {
+      console.error("대표 칭호 변경 실패:", err);
+    }
+  };
+
   return (
     <div className="w-full">
       <Header />
-      <section className="max-w-[1280px] sm:h-[calc(100vh-156px)] m-auto p-6">
+      <section className="max-w-[1280px] sm:min-h-[calc(100vh-156px)] m-auto p-6">
         <h1 className="text-headline3_B">마이페이지</h1>
         <div className="flex flex-col gap-6 pt-6">
           <h2 className="font-semibold">유저 정보</h2>
@@ -143,21 +228,91 @@ export default function MyPage() {
             <div className="w-full sm:w-auto">
               <h3 className="min-w-[112px] text-body1_M ">이메일 주소</h3>
             </div>
-            <div className="flex-1">
-              <p className="text-caption1_M text-primary-500">{user?.email}</p>
+            <div className="flex-1 flex justify-between items-center gap-4">
+              {isEditingEmail ? (
+                <>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
+                  />
+                  <button
+                    onClick={handleEmailSave}
+                    className="basic-button-primary hover:bg-primary-600 text-white"
+                  >
+                    저장
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEmail(user?.email || "");
+                      setIsEditingEmail(false);
+                    }}
+                    className="basic-button-gray hover:bg-gray-200"
+                  >
+                    취소
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="w-full text-caption1_M text-primary-500">{email}</p>
+                  <button
+                    onClick={() => setIsEditingEmail(true)}
+                    className="basic-button-gray hover:bg-gray-200 text-body1_R"
+                  >
+                    이메일 변경
+                  </button>
+                </>
+              )}
             </div>
-            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
-              이메일 변경
-            </button>
           </div>
 
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="min-w-[112px] text-body1_M ">비밀번호</h3>
+          <div className="flex flex-wrap justify-between items-center gap-3 sm:gap-6">
+            <div className="w-full sm:w-auto">
+              <h3 className="min-w-[112px] text-body1_M">비밀번호</h3>
             </div>
-            <button className="basic-button-gray hover:bg-gray-200 text-body1_R">
-              비밀번호 변경
-            </button>
+            <div className="flex-1 flex justify-end items-center gap-4">
+              {isEditingPassword ? (
+                <>
+                  <input
+                    type="password"
+                    placeholder="현재 비밀번호"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
+                  />
+                  <input
+                    type="password"
+                    placeholder="새 비밀번호"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
+                  />
+                  <button
+                    onClick={handlePasswordSave}
+                    className="basic-button-primary hover:bg-primary-600 text-white"
+                  >
+                    저장
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setIsEditingPassword(false);
+                    }}
+                    className="basic-button-gray hover:bg-gray-200"
+                  >
+                    취소
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditingPassword(true)}
+                  className="basic-button-gray hover:bg-gray-200 text-body1_R"
+                >
+                  비밀번호 변경
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -171,12 +326,12 @@ export default function MyPage() {
             <div className="relative w-full sm:w-64">
               <select
                 value={selectedTitle}
-                onChange={(e) => setSelectedTitle(e.target.value)}
+                onChange={handleTitleChange}
                 className="w-full appearance-none bg-gray-100 border border-gray-300 text-body1_M px-4 py-2 rounded-md shadow-inner focus:ring-2 focus:ring-primary-400 focus:outline-none"
               >
                 {titles.map((title, idx) => (
-                  <option key={idx} value={title}>
-                    {title}
+                  <option key={idx} value={title.key}>
+                    {title.name}
                   </option>
                 ))}
               </select>
