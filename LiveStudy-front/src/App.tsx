@@ -9,6 +9,7 @@ import JoinPage from './pages/JoinPage';
 import MyPage from './pages/MyPage';
 import EmailLoginPage from './pages/EmailLoginPage';
 import PrivateRoute from './routes/PrivateRoute';
+import BlockTestPage from './components/TestMessagePage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Route path='/join' element={<JoinPage />} />
       <Route path='*' element={<NotFoundPage />} />
       <Route path='test-page' element={<TestPage />} />
+      <Route path='block-test-page' element={<BlockTestPage />} />
 
       {/* 보호 라우트 */}
       <Route path='/main' element={
