@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login as loginApi } from "../lib/api/auth";
-import { useAuthStore } from "../store/authStore";
+import { loginWithStore } from "../lib/api/auth";
 
 export default function EmailLoginPage() {
   const [email, setEmail] = useState('')
   const [password,setPassword] = useState('')
   
-  const navigate = useNavigate()
-  const setLogin = useAuthStore((state) => state.login);
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     if(!email || !password) {
@@ -17,13 +15,17 @@ export default function EmailLoginPage() {
     }
 
     try {
-      const response = await loginApi({ email, password });
-      const { uid, email: userEmail, username, token } = response;
-      setLogin({ uid, email: userEmail, username }, token);
-      alert(`환영합니다 ! ${username}님`)
-      navigate('/main');
+      const result = await loginWithStore(email, password);
+      
+      if (result.success) {
+        alert(`환영합니다 ! ${result.user?.nickname}님`)
+        navigate('/main');
+      } else {
+        alert(result.error || '로그인에 실패했습니다.')
+      }
     } catch (error) {
-      alert(error || '로그인에 실패했습니다.')
+      const errorMessage = error instanceof Error ? error.message : '로그인 처리 중 오류가 발생했습니다.';
+      alert(errorMessage);
     }
   }
 

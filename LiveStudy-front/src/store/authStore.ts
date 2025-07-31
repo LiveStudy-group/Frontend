@@ -6,7 +6,7 @@ interface AuthState {
   user: {
     uid: string;
     email: string;
-    username: string;
+    nickname: string;
     profileImageUrl?: string;
     title?: {
       key: string;
@@ -26,13 +26,14 @@ interface AuthState {
     isRepresent: boolean;
   }[];
   fetchTitleList?: () => void;
+  initializeAuth?: () => void;
 
   updateUser: (updates: Partial<AuthState["user"]>) => void;
   login: (
     user: {
       uid: string;
       email: string;
-      username: string;
+      nickname: string;
       profileImageUrl?: string;
       title?: {
         key: string;
@@ -49,14 +50,14 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist<AuthState>(
-    (set) => ({
+    (set, get) => ({
       isLoggedIn: false,
-      user: {
-        uid: '',
-        email: '',
-        username: '',
-        profileImageUrl: '',
-      },
+        user: {
+    uid: '',
+    email: '',
+    nickname: '',
+    profileImageUrl: '',
+  },
       token: null,
       titleList: [],
 
@@ -73,12 +74,12 @@ export const useAuthStore = create<AuthState>()(
             : null,
         })),
 
-      login: (
-        { uid, email, username, profileImageUrl, title }: {
-          uid: string;
-          email: string;
-          username: string;
-          profileImageUrl?: string;
+        login: (
+    { uid, email, nickname, profileImageUrl, title }: {
+      uid: string;
+      email: string;
+      nickname: string;
+      profileImageUrl?: string;
           title?: {
             key: string;
             name: string;
@@ -97,14 +98,14 @@ export const useAuthStore = create<AuthState>()(
           isRepresent: true,
         };
 
-        set({
-          user: {
-            uid,
-            email,
-            username,
-            profileImageUrl,
-            title: title || defaultTitle,
-          },
+            set({
+      user: {
+        uid,
+        email,
+        nickname,
+        profileImageUrl,
+        title: title || defaultTitle,
+      },
           token,
           isLoggedIn: true,
         });
@@ -116,6 +117,16 @@ export const useAuthStore = create<AuthState>()(
         const res = await fetch("/api/titles");
         const data = await res.json();
         set({ titleList: data });
+      },
+
+      // 토큰 자동 복원 함수
+      initializeAuth: () => {
+        const state = get();
+        if (state.token && state.isLoggedIn) {
+          // JWT 토큰을 axios 헤더에 설정
+          const { setAuthToken } = require('../lib/api/auth');
+          setAuthToken(state.token);
+        }
       },
     }),
     {

@@ -1,7 +1,7 @@
 export interface MessageItemProps {
   senderId: string;
   studyroomId?: number;
-  username: string;
+  nickname: string;
   profileImage: string;
   message: string;
   timestamp: string;

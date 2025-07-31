@@ -5,12 +5,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080', // 백엔드 주소?
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, '')
-      }
-    }
+    port: 5174, // 백엔드 CORS 설정에 맞춰 포트 고정
+    // 실제 배포 환경과 동일 - 프록시 제거
+    // CORS 해결되면 바로 동작
   }
 })

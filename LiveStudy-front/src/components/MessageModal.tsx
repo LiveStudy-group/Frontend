@@ -44,7 +44,7 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
     const newMessage: MessageItemProps = {
       studyroomId: 1,
       senderId: userInfo?.uid ?? "",
-      username: String(userInfo?.username),
+      nickname: String(userInfo?.nickname),
       profileImage: userInfo?.profileImageUrl || "https://picsum.photos/200/300",
       timestamp: new Date().toISOString(),
       message: input.trim(),
@@ -127,7 +127,7 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
                 key={`${msg.timestamp}-${msg.senderId}`}
                 studyroomId={1}
                 senderId={msg.senderId}
-                username={msg.username}
+                nickname={msg.nickname}
                 profileImage={msg.profileImage}
                 message={msg.message}
                 timestamp={msg.timestamp}

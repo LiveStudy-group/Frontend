@@ -6,7 +6,7 @@ import { useBlockUserStore } from '../store/blockUserStore';
 const dummyMessages = [
   {
     senderId: 'user-a',
-    username: '홍길동',
+    nickname: '홍길동',
     profileImage: 'https://via.placeholder.com/40',
     message: '안녕하세요',
     timestamp: new Date().toISOString(),
@@ -15,7 +15,7 @@ const dummyMessages = [
   },
   {
     senderId: 'user-a',
-    username: '홍길동',
+    nickname: '홍길동',
     profileImage: 'https://via.placeholder.com/40',
     message: '이 메시지도 보이면 안 돼요',
     timestamp: new Date().toISOString(),
@@ -24,7 +24,7 @@ const dummyMessages = [
   },
   {
     senderId: 'user-me',
-    username: '나',
+    nickname: '나',
     profileImage: 'https://via.placeholder.com/40',
     message: '나는 차단하지 않았어',
     timestamp: new Date().toISOString(),
