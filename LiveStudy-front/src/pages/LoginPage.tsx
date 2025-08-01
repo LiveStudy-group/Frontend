@@ -1,6 +1,8 @@
-import { Link } from "react-router-dom"
+import { Link } from "react-router-dom";
+import { GOOGLE_AUTH_URL, KAKAO_AUTH_URL, NAVER_AUTH_URL } from '../lib/constants/authUrls';
 
 export default function LoginPage() {
+ 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <section className="w-full max-w-sm flex flex-col items-center">
@@ -19,9 +21,27 @@ export default function LoginPage() {
           <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">
             <Link to={'/email-login'}>Email 로그인</Link>
           </button>
-          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">Google 로그인</button>
-          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">Kakao 로그인</button>
-          <button className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200">Naver 로그인</button>
+           
+          <a
+            href={GOOGLE_AUTH_URL}
+            className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center"
+          >
+            Google 로그인
+          </a>
+
+          <a
+            href={KAKAO_AUTH_URL}
+            className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center"
+          >
+            Kakao 로그인
+          </a>
+
+          <a
+            href={NAVER_AUTH_URL}
+            className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center"
+          >
+            Naver 로그인
+          </a>
         </div>
       </section>
     </div>
