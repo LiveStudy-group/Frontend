@@ -78,7 +78,7 @@ export default function TestPage() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">🚀 백엔드 API 연동 상태</h1>
         <div className="mb-6">
-          <p className="text-lg text-gray-600">서버 주소: <span className="font-mono bg-gray-100 px-2 py-1 rounded">https://live-study.com</span></p>
+          <p className="text-lg text-gray-600">서버 주소: <span className="font-mono bg-gray-100 px-2 py-1 rounded">https://api.live-study.com</span></p>
           <p className="text-sm text-gray-500 mt-2">
             💡 개발환경에서 백엔드 API 연동 상태를 확인합니다. CORS 설정 완료 시 정상 동작합니다.
           </p>

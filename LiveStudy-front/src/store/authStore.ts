@@ -120,11 +120,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // 토큰 자동 복원 함수
-      initializeAuth: () => {
+      initializeAuth: async () => {
         const state = get();
         if (state.token && state.isLoggedIn) {
           // JWT 토큰을 axios 헤더에 설정
-          const { setAuthToken } = require('../lib/api/auth');
+          const { setAuthToken } = await import('../lib/api/auth');
           setAuthToken(state.token);
         }
       },

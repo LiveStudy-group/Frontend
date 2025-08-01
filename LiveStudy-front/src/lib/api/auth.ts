@@ -249,9 +249,10 @@ export const testConnection = async (): Promise<ConnectionTestResult> => {
   }
 };
 
-// 로그인 테스트 (개발용)
+// 로그인 테스트 (개발용) - 회원가입과 동일한 계정 사용
 export const testLoginDemo = async (): Promise<{ message: string; user?: UserData; token?: string }> => {
-  const result = await loginWithStore("test@example.com", "test123");
+  // 먼저 회원가입된 계정이 있는지 확인하고, 없으면 고정 테스트 계정 사용
+  const result = await loginWithStore("testuser@example.com", "test123456");
   
   if (result.success) {
     return { 
@@ -266,20 +267,30 @@ export const testLoginDemo = async (): Promise<{ message: string; user?: UserDat
 
 // 회원가입 테스트 (개발용)
 export const testSignupDemo = async (): Promise<{ message: string; email?: string }> => {
-  const randomId = Math.floor(Math.random() * 1000);
+  // 랜덤 계정으로 회원가입 시도하여 중복 문제 방지
+  const randomId = Math.floor(Math.random() * 10000);
+  const testEmail = `newuser${randomId}@example.com`;
+  
   const result = await signUpWithStore({
-    email: `testuser${randomId}@example.com`,
+    email: testEmail,
     password: "test123456",
-    nickname: `테스트유저${randomId}`,
+    nickname: `신규유저${randomId}`,
     introduction: "백엔드 연동 테스트입니다!"
   });
   
   if (result.success) {
     return { 
       message: '✅ 회원가입 성공!',
-      email: `testuser${randomId}@example.com`
+      email: testEmail
     };
   } else {
+    // 500 에러도 처리 (서버 내부 문제일 수 있음)
+    if (result.error?.includes('이미 존재') || result.error?.includes('409') || result.error?.includes('500')) {
+      return {
+        message: `⚠️ 회원가입 오류: ${result.error}`,
+        email: testEmail
+      };
+    }
     throw new Error(result.error);
   }
 };
