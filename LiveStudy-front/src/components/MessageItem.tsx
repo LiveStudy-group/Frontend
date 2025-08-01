@@ -4,7 +4,7 @@ import { useBlockUserStore } from "../store/blockUserStore";
 
 const MessageItem: React.FC<MessageItemProps> = ({
   senderId = '',
-  username,
+  nickname,
   profileImage,
   message,
   timestamp,
@@ -65,10 +65,10 @@ const MessageItem: React.FC<MessageItemProps> = ({
           <div className="flex-1 flex items-center mb-2 cursor-pointer" onClick={toggleMenu}>
             <img
               src={profileImage}
-              alt={`${username}의 프로필`}
+              alt={`${nickname}의 프로필`}
               className="w-8 h-8 rounded-full mr-2"
             />
-            <p className="font-semibold mb-1">{username}</p>
+            <p className="font-semibold mb-1">{nickname}</p>
           </div>
           {openUserInfo && (
             <div className="absolute top-6 left-8 mt-2 px-4 py-2 text-xs bg-white border border-gray-100 rounded-md shadow-md hover:bg-gray-100 cursor-pointer z-10">
@@ -82,10 +82,10 @@ const MessageItem: React.FC<MessageItemProps> = ({
 
       {isMyMessage && !isContinuous && (
         <div className="flex items-center justify-end mb-2">
-          <p className="font-semibold mb-1">{username}</p>
+          <p className="font-semibold mb-1">{nickname}</p>
           <img 
             src={profileImage} 
-            alt={`${username}님의 Profile`} 
+            alt={`${nickname}님의 Profile`} 
             className="w-8 h-8 rounded-full ml-2" 
           />
         </div>

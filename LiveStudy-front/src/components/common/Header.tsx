@@ -55,7 +55,7 @@ const Header = () => {
                 ) : (
                   <span className="text-primary-400 mx-1">{user?.title?.icon} {user?.title?.name}</span>
                 )}
-                <span>{user?.username}님 !</span>
+                <span>{user?.nickname}님 !</span>
               </div>
               <div className="text-xs">
                 오늘 집중 시간 : <strong>02:03:56</strong>

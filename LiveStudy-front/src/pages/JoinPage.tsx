@@ -9,7 +9,7 @@ export default function JoinPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [repassword, setRepassword] = useState('')
-  const [username, setUsername] = useState('')
+  const [nickname, setNickname] = useState('')
   // const [phone, setPhone] = useState('')
 
   const [agreeAll, setAgreeAll] = useState(false)
@@ -38,7 +38,7 @@ export default function JoinPage() {
   };
 
   const validateForm = () => {
-    if (!email || !password || !repassword || !username) {
+    if (!email || !password || !repassword || !nickname) {
       alert('모든 필드를 입력해주세요.');
       return false;
     }
@@ -85,7 +85,7 @@ export default function JoinPage() {
     if(!validateForm()) return;
 
     try {
-      await signUp({ email, password, repassword, username})
+      await signUp({ email, password, repassword, nickname})
       alert('회원가입 성공! 로그인 페이지로 이동합니다.')
       navigate('/email-login')
     } catch (error) {
@@ -156,8 +156,8 @@ export default function JoinPage() {
               type="text" 
               className="w-full px-4 py-3 bg-white rounded-lg border border-gray-300 text-body1_R" 
               placeholder="이름을 입력해주세요."
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+                          value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
             />
           </div>
           {/* <div>

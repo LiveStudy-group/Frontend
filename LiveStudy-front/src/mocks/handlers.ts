@@ -140,10 +140,10 @@ export const checkDuplicateEmail = async (email: string) => {
 
 export const handlers = [
   rest.post('/api/auth/signup', async (req, res, ctx) => {
-    const { email, password, repassword, username } = await req.json()
+    const { email, password, repassword, nickname } = await req.json()
 
     // 간단한 유효성 검사 (프론트용 Mock이라 가볍게 처리)
-    if (!email || !password || !repassword || !username) {
+    if (!email || !password || !repassword || !nickname) {
       return res(
         ctx.status(400),
         ctx.json({ message: '모든 값을 입력해주세요.' })
@@ -184,7 +184,7 @@ export const handlers = [
           user: {
             uid: 'test-uid-1234',
             email,
-            username: '테스트 유저',
+            nickname: '테스트 유저',
             title: currentTitle?.key ? currentTitle : {
               id: 0,
               key: 'no-title',
@@ -207,7 +207,7 @@ export const handlers = [
           user: {
             uid: 'test-uid-5678',
             email,
-            username: '서브 유저',
+            nickname: '서브 유저',
             title: currentTitle?.key ? currentTitle : {
               id: 0,
               key: 'no-title',
@@ -238,7 +238,7 @@ export const handlers = [
   }),
 
   // 기존 닉네임 변경 핸들러
-  rest.patch('/api/user/profile/change/username', async (req, res, ctx) => {
+  rest.patch('/api/user/profile/change/nickname', async (req, res, ctx) => {
     const { nickname, profileImageUrl } = await req.json();
 
     if (!nickname || nickname.length < 2) {

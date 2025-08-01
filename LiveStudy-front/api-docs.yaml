@@ -1,0 +1,935 @@
+openapi: 3.0.1
+info:
+  title: LiveStudy API
+  version: v0
+  description: LiveStudy 플랫폼 API 명세서
+
+servers:
+  - url: http://api.live-study.com
+    description: 메인 서버
+
+tags:
+  - name: 인증 API
+    description: 회원가입, 로그인 인증 관련 API
+  - name: 스터디룸 API
+    description: 스터디룸 입장/퇴장 API
+  - name: 집중 타이머 API
+    description: 집중 타이머 관련 API
+  - name: LiveKit API
+    description: LiveKit 입장 토큰 발급 API
+  - name: WebHook API
+    description: |
+      LiveKit 서버에서 전송하는 WebHook 이벤트를 처리합니다.
+      - 이 API는 외부 사용자 대상이 아니며, LiveKit 서버에 의해 자동으로 호출되는 방식입니다.
+      각 이벤트에 따라 트랙 정보를 저장하거나 제거합니다.
+
+paths:
+  # 인증 API
+  /api/auth/signup:
+    post:
+      tags: [인증 API]
+      summary: 이메일 회원가입
+      description: 이메일, 회원번호를 입력받아 신규 회원을 생성합니다.
+      operationId: signup
+      requestBody:
+        description: 회원가입 요청 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignupRequest'
+      responses:
+        '201':
+          description: 이메일 회원가입 성공
+        '400':
+          description: 요청값이 유효하지 않습니다.
+        '500':
+          description: 서버 내부 오류
+
+  /api/auth/login:
+    post:
+      tags: [인증 API]
+      summary: 로그인
+      description: 이메일, 비밀번호로 로그인을 하고 토큰을 응답받습니다.
+      operationId: login
+      requestBody:
+        description: 로그인 요청 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      responses:
+        '201':
+          description: 로그인 성공
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '401':
+          description: 인증 실패
+        '500':
+          description: 서버 내부 오류
+
+  /api/auth/oauth2/url/{provider}:
+    get:
+      tags: [인증 API]
+      operationId: getOAuth2LoginUrl
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+
+  # 스터디룸 API
+  /api/study-rooms/enter:
+    post:
+      tags: [스터디룸 API]
+      summary: 스터디룸 입장
+      description: 사용자 ID를 기반으로 StudyRoom에 입장하고, 배정된 방 ID를 반환합니다.
+      operationId: enterRoom
+      parameters:
+        - name: userId
+          in: query
+          description: 사용자 ID
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: 입장 성공, 방 ID 반환
+          content:
+            '*/*':
+              schema:
+                type: string
+        '500':
+          description: 서버 내부 오류
+
+  /api/study-rooms/leave:
+    post:
+      tags: [스터디룸 API]
+      summary: 스터디룸 퇴장
+      description: 사용자 ID를 기반으로 StudyRoom에서 퇴장합니다.
+      operationId: leaveRoom
+      parameters:
+        - name: userId
+          in: query
+          description: 사용자 ID
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: 퇴장 성공
+        '500':
+          description: 서버 내부 오류
+
+  # 집중 타이머 API
+  /api/timer/start:
+    post:
+      tags: [집중 타이머 API]
+      summary: 집중 시작
+      description: 집중 타이머를 시작합니다.
+      operationId: startFocus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimerStartRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TimerResponse'
+
+  /api/timer/stop:
+    post:
+      tags: [집중 타이머 API]
+      summary: 집중 종료
+      description: 집중 타이머를 종료하고 방에서 퇴장합니다.
+      operationId: stopFocus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimerControlRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TimerResponse'
+
+  /api/timer/pause:
+    post:
+      tags: [집중 타이머 API]
+      summary: 집중 일시정지
+      description: 집중 타이머를 일시정지합니다. (자리비움)
+      operationId: pauseFocus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimerControlRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TimerResponse'
+
+  /api/timer/resume:
+    post:
+      tags: [집중 타이머 API]
+      summary: 집중 재개
+      description: 일시정지된 집중 타이머를 재개합니다.
+      operationId: resumeFocus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimerControlRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TimerResponse'
+
+  /api/timer/status/{userId}/{roomId}:
+    get:
+      tags: [집중 타이머 API]
+      summary: 타이머 상태 조회
+      description: 현재 사용자의 타이머 상태를 조회합니다.
+      operationId: getTimerStatus
+      parameters:
+        - name: userId
+          in: path
+          description: 사용자 ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: roomId
+          in: path
+          description: 방 ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TimerStatusResponse'
+
+  # LiveKit API
+  /api/livekit/token:
+    post:
+      tags: [LiveKit API]
+      summary: LiveKit 입장 토큰 발급
+      description: 현재 로그인된 사용자에게 LiveKit 입장용 accessToken을 발급합니다.
+      operationId: generateToken
+      requestBody:
+        description: 입장할 방 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: 토큰 발급 성공
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: 인증 실패 또는 토큰 발급 불가
+        '500':
+          description: 서버 내부 오류
+
+  /api/livekit/refresh:
+    post:
+      tags: [LiveKit API]
+      summary: Livekit 입장 토큰 재발급 API
+      description: 토큰이 만료되거나 Livekit 사용 중인 사용자의 토큰에 이상이 생겼을 때 다시 발급 받습니다.
+      operationId: refreshLiveKitToken
+      responses:
+        '200':
+          description: LiveKit 입장용 토큰 재발급 성공
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '500':
+          description: 서버 내부 오류
+
+  # 사용자 프로필 API
+  /api/user/profile:
+    get:
+      tags: [user-profile-controller]
+      operationId: getUserProfile
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+
+  /api/user/profile/email:
+    patch:
+      tags: [user-profile-controller]
+      operationId: updateEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmailRequest'
+      responses:
+        '200':
+          description: OK
+
+  /api/user/profile/nickname:
+    patch:
+      tags: [user-profile-controller]
+      operationId: updateNickname
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNicknameRequest'
+      responses:
+        '200':
+          description: OK
+
+  /api/user/profile/password:
+    patch:
+      tags: [user-profile-controller]
+      operationId: updatePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasswordRequest'
+      responses:
+        '200':
+          description: OK
+
+  /api/user/profile/profile:
+    patch:
+      tags: [user-profile-controller]
+      operationId: updateProfileImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileImageRequest'
+      responses:
+        '200':
+          description: OK
+
+  # 사용자 통계 API
+  /api/user/stat/normal:
+    get:
+      tags: [user-stat-controller]
+      operationId: getUserNormalStats
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserStudyStatsResponse'
+
+  /api/user/stat/daily-focus:
+    get:
+      tags: [user-stat-controller]
+      operationId: getDailyFocus
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyRecordResponse'
+
+  /api/user/stat/average-focus-ratio:
+    get:
+      tags: [user-stat-controller]
+      operationId: getAverageFocusRatio
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AverageFocusRatioResponse'
+
+  # 기타 API
+  /api/reports:
+    post:
+      tags: [report-controller]
+      operationId: report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+      responses:
+        '200':
+          description: OK
+
+  /api/titles/evaluate:
+    post:
+      tags: [title-controller]
+      summary: 획득 가능한 칭호 평가 및 지급
+      operationId: grantTitles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GrantTitleRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/GrantTitleResponse'
+
+  # WebHook API
+  /webhook/livekit:
+    post:
+      tags: [WebHook API]
+      summary: LiveKit WebHook 이벤트 수신
+      description: |
+        LiveKit 서버가 `track_published`, `track_unpublished` 이벤트 발생 시 호출하는 Webhook API입니다.
+        - `track_published`: 사용자의 트랙 정보 저장
+        - `track_unpublished`: 트랙 정보 제거
+        **주의: 이 API는 인증 없이 호출됩니다. 외부에서 직접 호출하지 마세요.**
+      operationId: handleWebHook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveKitWebHookEvent'
+      responses:
+        '200':
+          description: OK
+
+  # 디버그 API
+  /api/debug/auth-info:
+    get:
+      tags: [o-auth-2-debug-controller]
+      operationId: getAuthInfo
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+
+  /api/debug/generate-token:
+    get:
+      tags: [o-auth-2-debug-controller]
+      operationId: generateTokenTest
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+
+components:
+  schemas:
+    # 인증 관련 스키마
+    UserSignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 이메일 주소
+          example: test@example.com
+        password:
+          type: string
+          description: 비밀번호
+          example: "123$$$!"
+        nickname:
+          type: string
+          description: 사용자 닉네임
+          example: 델키란
+        introduction:
+          type: string
+          description: 자기 소개 문구
+          example: 잘 부탁 드립니다.
+        profileImage:
+          type: string
+          description: 프로필 이미지
+          example: profile.image
+        socialProvider:
+          type: string
+          description: 소셜 로그인 확인
+          example: SocialProvider.LOCAL
+          enum: [LOCAL, GOOGLE, KAKAO, NAVER]
+
+    UserLoginRequest:
+      type: object
+      description: 사용자 이메일 로그인 요청 DTO
+      properties:
+        email:
+          type: string
+          description: 이메일
+          example: user@example.com
+        password:
+          type: string
+          description: 비밀번호
+          example: "0000"
+
+    UserLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT Access Token
+          example: eyJhbGciOiJIUzI1...
+
+    # 타이머 관련 스키마
+    TimerStartRequest:
+      type: object
+      description: 타이머 시작 요청 DTO
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID
+          example: 1
+        roomId:
+          type: integer
+          format: int64
+          description: 방 ID
+          example: 1
+
+    TimerControlRequest:
+      type: object
+      description: 타이머 제어 요청 DTO
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID
+          example: 1
+        roomId:
+          type: integer
+          format: int64
+          description: 방 ID
+          example: 1
+
+    TimerResponse:
+      type: object
+      description: 타이머 응답 DTO
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID
+          example: 1
+        roomId:
+          type: integer
+          format: int64
+          description: 방 ID
+          example: 1
+        status:
+          type: string
+          description: 현재 집중 상태
+          example: FOCUS
+          enum: [FOCUS, AWAY]
+        totalStudyTime:
+          type: integer
+          format: int32
+          description: 총 집중 시간(초)
+          example: 3600
+        totalAwayTime:
+          type: integer
+          format: int32
+          description: 총 자리비움 시간(초)
+          example: 300
+        statusChangedAt:
+          type: string
+          format: date-time
+          description: 상태 변경 시각
+        joinTime:
+          type: string
+          format: date-time
+          description: 방 입장 시각
+
+    TimerStatusResponse:
+      type: object
+      description: 현재 타이머 상태 조회 응답 DTO
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: 사용자 ID
+          example: 1
+        roomId:
+          type: integer
+          format: int64
+          description: 방 ID
+          example: 1
+        nickname:
+          type: string
+          description: 사용자 닉네임
+          example: 스터디왕
+        currentStatus:
+          type: string
+          description: 현재 집중 상태
+          example: FOCUS
+          enum: [FOCUS, AWAY]
+        currentSessionStudyTime:
+          type: integer
+          format: int32
+          description: 현재 세션에서의 집중 시간(초)
+          example: 1800
+        currentSessionAwayTime:
+          type: integer
+          format: int32
+          description: 현재 세션에서의 자리비움 시간(초)
+          example: 120
+        totalStudyTime:
+          type: integer
+          format: int32
+          description: 총 누적 집중 시간(초)
+          example: 7200
+        totalAwayTime:
+          type: integer
+          format: int32
+          description: 총 누적 자리비움 시간(초)
+          example: 600
+        statusChangedAt:
+          type: string
+          format: date-time
+          description: 상태 변경 시각
+        currentStatusDuration:
+          type: integer
+          format: int32
+          description: 현재 상태 지속 시간(초)
+          example: 900
+
+    # LiveKit 관련 스키마
+    TokenRequest:
+      type: object
+      properties:
+        roomId:
+          type: string
+          description: 입장할 방의 ID
+          example: study-room-1
+
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: 발급된 LiveKit accessToken
+          example: eyJhbGciOiJIUzI1...
+
+    # 사용자 프로필 관련 스키마
+    UserProfileResponse:
+      type: object
+      properties:
+        profileImage:
+          type: string
+        nickname:
+          type: string
+        email:
+          type: string
+        selectedTitle:
+          type: string
+        totalStudyTime:
+          type: integer
+          format: int32
+
+    UpdateEmailRequest:
+      type: object
+      required: [newEmail]
+      properties:
+        newEmail:
+          type: string
+          minLength: 0
+          maxLength: 100
+
+    UpdateNicknameRequest:
+      type: object
+      required: [newNickname]
+      properties:
+        newNickname:
+          type: string
+          minLength: 0
+          maxLength: 20
+
+    UpdatePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword, confirmNewPassword]
+      properties:
+        currentPassword:
+          type: string
+          minLength: 0
+          maxLength: 70
+        newPassword:
+          type: string
+          minLength: 0
+          maxLength: 70
+        confirmNewPassword:
+          type: string
+          minLength: 0
+          maxLength: 70
+
+    UpdateProfileImageRequest:
+      type: object
+      required: [newProfileImage]
+      properties:
+        newProfileImage:
+          type: string
+          minLength: 0
+          maxLength: 1024
+
+    # 사용자 통계 관련 스키마
+    UserStudyStatsResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        nickname:
+          type: string
+        totalStudyTime:
+          type: integer
+          format: int32
+        totalAwayTime:
+          type: integer
+          format: int32
+        totalAttendanceDays:
+          type: integer
+          format: int32
+        continueAttendanceDays:
+          type: integer
+          format: int32
+        lastAttendanceDate:
+          type: string
+          format: date
+
+    DailyRecordResponse:
+      type: object
+      properties:
+        recordDate:
+          type: string
+          format: date
+        dailyStudyTime:
+          type: integer
+          format: int64
+        dailyAwayTime:
+          type: integer
+          format: int64
+        focusRatio:
+          type: number
+          format: double
+
+    AverageFocusRatioResponse:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        averageFocusRatio:
+          type: number
+          format: double
+
+    # 기타 스키마
+    ReportRequest:
+      type: object
+      properties:
+        roomId:
+          type: integer
+          format: int64
+        chatId:
+          type: integer
+          format: int64
+        reportedId:
+          type: integer
+          format: int64
+        reason:
+          type: string
+          enum: [OBSCENE_CONTENT, ABUSE, DISTURBANCE]
+        description:
+          type: string
+
+    GrantTitleRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        activity:
+          $ref: '#/components/schemas/UserActivity'
+
+    GrantTitleResponse:
+      type: object
+      properties:
+        grantedTitleNames:
+          type: array
+          items:
+            type: string
+
+    UserActivity:
+      type: object
+      properties:
+        totalFocusMinutes:
+          type: integer
+          format: int64
+        consecutiveFocusDays:
+          type: integer
+          format: int32
+        oneHourFocusStreak:
+          type: integer
+          format: int32
+        totalChatCount:
+          type: integer
+          format: int32
+        consecutiveLoginDays:
+          type: integer
+          format: int32
+        enteredFirstRoom:
+          type: boolean
+        reportCount:
+          type: integer
+          format: int32
+        lastLoginTime:
+          $ref: '#/components/schemas/LocalTime'
+        earnedTitleCount:
+          type: integer
+          format: int32
+        loggedInAt9AmToday:
+          type: boolean
+        oneDayFocusMinutes:
+          type: integer
+          format: int32
+
+    LocalTime:
+      type: object
+      properties:
+        hour:
+          type: integer
+          format: int32
+        minute:
+          type: integer
+          format: int32
+        second:
+          type: integer
+          format: int32
+        nano:
+          type: integer
+          format: int32
+
+    # WebHook 관련 스키마
+    LiveKitWebHookEvent:
+      type: object
+      description: LiveKit Webhook 이벤트 객체
+      properties:
+        event:
+          type: string
+          description: 이벤트 타입 (예: track_published, track_unpublished)
+          example: track_published
+        participant:
+          $ref: '#/components/schemas/Participant'
+        track:
+          $ref: '#/components/schemas/Track'
+
+    Participant:
+      type: object
+      description: 이벤트를 발생시킨 참여자 정보
+      properties:
+        id:
+          type: string
+          description: 참여자 ID (userId)
+          example: user-1234
+
+    Track:
+      type: object
+      description: 발행된 트랙 정보
+      properties:
+        sid:
+          type: string
+          description: 트랙의 고유 ID
+          example: TR_abcdef123456
+        type:
+          type: string
+          description: 트랙 타입
+          example: video
+          enum: [AUDIO, VIDEO, SCREEN]

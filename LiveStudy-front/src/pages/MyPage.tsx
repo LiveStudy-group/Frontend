@@ -10,7 +10,7 @@ export default function MyPage() {
   const [selectedTitle, setSelectedTitle] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [profileImage, setProfileImage] = useState(user?.profileImageUrl || "/img/my-page-profile-image-1.jpg");
-  const [username, setUsername] = useState(user?.username || "");
+  const [nickname, setNickname] = useState(user?.nickname || "");
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [email, setEmail] = useState(user?.email || "");
@@ -61,13 +61,13 @@ useEffect(() => {
 
   const handleUsernameSave = async () => {
     try {
-      const res = await fetch("/api/user/profile/change/username", {
+      const res = await fetch("/api/user/profile/change/nickname", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nickname: username,
+          nickname: nickname,
           profileImageUrl: profileImage,
         }),
       });
@@ -75,7 +75,7 @@ useEffect(() => {
 
       const data = await res.json();
       if (user) {
-        user.username = data.user.username;
+        user.nickname = data.user.nickname;
       }
 
       setIsEditingUsername(false);
@@ -190,8 +190,8 @@ useEffect(() => {
               {isEditingUsername ? (
                 <>
                   <input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                              value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
                     className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
                   />
                   <button
@@ -202,7 +202,7 @@ useEffect(() => {
                   </button>
                   <button
                     onClick={() => {
-                      setUsername(user?.username || "");
+                      setNickname(user?.nickname || "");
                       setIsEditingUsername(false);
                     }}
                     className="basic-button-gray hover:bg-gray-200"
@@ -212,7 +212,7 @@ useEffect(() => {
                 </>
               ) : (
                 <>
-                  <p className="w-full text-caption1_M text-primary-500">{username}</p>
+                  <p className="w-full text-caption1_M text-primary-500">{nickname}</p>
                   <button
                     onClick={() => setIsEditingUsername(true)}
                     className="basic-button-gray hover:bg-gray-200 text-body1_R"
