@@ -14,62 +14,31 @@
 
 import api from './axios';
 import axios from 'axios';
-
-// ============================================
-// 타입 정의 (실제 백엔드 API 스펙 기준)
-// ============================================
-interface SignUpData {
-  email: string;
-  password: string;
-  nickname: string;
-  introduction?: string;
-  profileImage?: string;
-  socialProvider?: 'LOCAL' | 'GOOGLE' | 'KAKAO' | 'NAVER';
-}
-
-interface LoginData {
-  email: string;
-  password: string;
-}
-
-// 실제 백엔드 응답 형식 (OpenAPI 스펙 기준)
-interface LoginResponse {
-  token: string; // JWT Access Token
-}
-
-// 함수 반환 타입들
-interface UserData {
-  uid: string;
-  email: string;
-  nickname: string;
-  profileImageUrl?: string;
-}
-
-interface LoginResult {
-  success: boolean;
-  user?: UserData;
-  token?: string;
-  error?: string;
-}
-
-interface SignUpResult {
-  success: boolean;
-  message?: string;
-  error?: string;
-}
-
-interface ConnectionTestResult {
-  message: string;
-  status?: number;
-  data?: unknown;
-  error?: string | null;
-}
+import type {
+  SignUpData,
+  LoginData,
+  LoginResponse,
+  UserData,
+  LoginResult,
+  SignUpResult,
+  ConnectionTestResult,
+  UpdateNicknameRequest,
+  UpdateEmailRequest,
+  UpdatePasswordRequest,
+  UpdateProfileImageRequest,
+  ProfileApiResponse,
+  StatsApiResponse,
+  DailyFocusApiResponse,
+  AverageFocusRatioApiResponse,
+  UpdateApiResponse,
+  ProfileImageApiResponse
+} from '../../types/auth';
 
 // ============================================
 // 에러 처리 및 유틸리티 함수들
 // ============================================
 
-export function handleAxiosError(error: unknown, defaultMessage: string) {
+export function handleAxiosError(error: unknown, defaultMessage: string): string {
   if(axios.isAxiosError(error)) {
     const status = error.response?.status;
     const message = error.response?.data?.message || error.response?.data;
@@ -77,18 +46,18 @@ export function handleAxiosError(error: unknown, defaultMessage: string) {
     // 상태코드별 에러 메시지
     switch(status) {
       case 400:
-        throw new Error(message || '요청값이 유효하지 않습니다.');
+        return message || '요청값이 유효하지 않습니다.';
       case 401:
-        throw new Error(message || '인증에 실패했습니다.');
+        return message || '인증에 실패했습니다.';
       case 409:
-        throw new Error(message || '이미 존재하는 정보입니다.');
+        return message || '이미 존재하는 정보입니다.';
       case 500:
-        throw new Error('서버 내부 오류가 발생했습니다.');
+        return '서버 내부 오류가 발생했습니다.';
       default:
-        throw new Error(message || defaultMessage);
+        return message || defaultMessage;
     }
   }
-  throw new Error('네트워크 오류가 발생했습니다.')
+  return '네트워크 오류가 발생했습니다.';
 }
 
 // JWT 토큰을 axios 인터셉터에 설정
@@ -269,7 +238,7 @@ export const testLoginDemo = async (): Promise<{ message: string; user?: UserDat
 export const testSignupDemo = async (): Promise<{ message: string; email?: string }> => {
   // 랜덤 계정으로 회원가입 시도하여 중복 문제 방지
   const randomId = Math.floor(Math.random() * 10000);
-  const testEmail = `newuser${randomId}@example.com`;
+  const testEmail = `testuser${randomId}@example.com`;
   
   const result = await signUpWithStore({
     email: testEmail,
@@ -292,5 +261,278 @@ export const testSignupDemo = async (): Promise<{ message: string; email?: strin
       };
     }
     throw new Error(result.error);
+  }
+};
+
+// ============================================
+// 마이페이지 사용자 정보 수정 API 함수들
+// ============================================
+
+// 닉네임 변경
+export async function updateNickname(nickname: string): Promise<UpdateApiResponse> {
+  try {
+    await api.patch('/api/user/profile/nickname', {
+      newNickname: nickname
+    } as UpdateNicknameRequest);
+    
+    // authStore 업데이트
+    const { useAuthStore } = await import('../../store/authStore');
+    useAuthStore.getState().updateUser({ nickname });
+    
+    return { success: true, message: '닉네임이 변경되었습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '닉네임 변경에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 이메일 변경
+export async function updateEmail(email: string): Promise<UpdateApiResponse> {
+  try {
+    await api.patch('/api/user/profile/email', {
+      newEmail: email
+    } as UpdateEmailRequest);
+    
+    // authStore 업데이트
+    const { useAuthStore } = await import('../../store/authStore');
+    useAuthStore.getState().updateUser({ email });
+    
+    return { success: true, message: '이메일이 변경되었습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '이메일 변경에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 비밀번호 변경
+export async function updatePassword(currentPassword: string, newPassword: string, confirmNewPassword: string): Promise<UpdateApiResponse> {
+  try {
+    await api.patch('/api/user/profile/password', {
+      currentPassword,
+      newPassword,
+      confirmNewPassword
+    } as UpdatePasswordRequest);
+    
+    return { success: true, message: '비밀번호가 변경되었습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '비밀번호 변경에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 프로필 이미지 변경
+export async function updateProfileImage(imageUrl: string): Promise<ProfileImageApiResponse> {
+  try {
+    const response = await api.patch('/api/user/profile/profileImage', {
+      newProfileImage: imageUrl
+    } as UpdateProfileImageRequest);
+    
+    const resultImageUrl = response.data.imageUrl || imageUrl;
+    
+    // authStore 업데이트
+    const { useAuthStore } = await import('../../store/authStore');
+    useAuthStore.getState().updateUser({ profileImageUrl: resultImageUrl });
+    
+    return { success: true, imageUrl: resultImageUrl, message: '프로필 이미지가 변경되었습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '프로필 이미지 변경에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 프로필 조회
+export async function getUserProfile(): Promise<ProfileApiResponse> {
+  try {
+    const response = await api.get('/api/user/profile');
+    
+    return { success: true, profile: response.data, message: '프로필을 불러왔습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '프로필 조회에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 사용자 통계 조회
+export async function getUserStats(): Promise<StatsApiResponse> {
+  try {
+    const response = await api.get('/api/user/stat/normal');
+    
+    return { success: true, stats: response.data, message: '통계를 불러왔습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '통계 조회에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 일별 집중도 추이 조회
+export async function getDailyFocus(startDate?: string, endDate?: string): Promise<DailyFocusApiResponse> {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const response = await api.get(`/api/user/stat/daily-focus?${params.toString()}`);
+    
+    return { success: true, dailyFocus: response.data, message: '일별 집중도를 불러왔습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '일별 집중도 조회에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 평균 집중률 조회
+export async function getAverageFocusRatio(startDate?: string, endDate?: string): Promise<AverageFocusRatioApiResponse> {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const response = await api.get(`/api/user/stat/average-focus-ratio?${params.toString()}`);
+    
+    return { success: true, averageFocusRatio: response.data, message: '평균 집중률을 불러왔습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '평균 집중률 조회에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 칭호 목록 조회 (임시 제거 - 새로운 칭호 API 구조에 맞게 추후 구현)
+// export async function getUserTitles(): Promise<{ success: boolean; titles?: unknown[]; message: string }> {
+//   try {
+//     const response = await api.get('/api/titles');
+//     
+//     return { success: true, titles: response.data.titles, message: '칭호 목록을 불러왔습니다.' };
+//   } catch (error: unknown) {
+//     const errorMessage = handleAxiosError(error, '칭고 목록 조회에 실패했습니다.');
+//     return { success: false, message: errorMessage };
+//   }
+// }
+
+// 대표 칭호 변경 (임시 제거 - 새로운 칭호 API 구조에 맞게 추후 구현)
+// export async function updateRepresentTitle(titleId: number): Promise<{ success: boolean; title?: unknown; message: string }> {
+//   try {
+//     const response = await api.post(`/api/titles/${userId}/equip?titleId=${titleId}`);
+//     
+//     const title = response.data;
+//     
+//     // authStore 업데이트
+//     const { useAuthStore } = await import('../../store/authStore');
+//     useAuthStore.getState().updateUser({ title });
+//     
+//     return { success: true, title, message: '대표 칭호가 변경되었습니다.' };
+//   } catch (error: unknown) {
+//     const errorMessage = handleAxiosError(error, '대표 칭고 변경에 실패했습니다.');
+//     return { success: false, message: errorMessage };
+//   }
+// };
+
+// ============================================
+// 마이페이지 API 테스트 함수들 (개발용)
+// ============================================
+
+// 닉네임 변경 테스트
+export const testUpdateNickname = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const testNickname = `테스트유저${Math.floor(Math.random() * 1000)}`;
+    const result = await updateNickname(testNickname);
+    
+    if (result.success) {
+      return { 
+        message: '✅ 닉네임 변경 성공!', 
+        details: `새 닉네임: ${testNickname}`
+      };
+    } else {
+      return { 
+        message: '❌ 닉네임 변경 실패', 
+        details: result.message 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 닉네임 변경 API 에러', 
+      details: errorMessage 
+    };
+  }
+};
+
+// 이메일 변경 테스트  
+export const testUpdateEmail = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const testEmail = `test${Math.floor(Math.random() * 1000)}@example.com`;
+    const result = await updateEmail(testEmail);
+    
+    if (result.success) {
+      return { 
+        message: '✅ 이메일 변경 성공!', 
+        details: `새 이메일: ${testEmail}`
+      };
+    } else {
+      return { 
+        message: '❌ 이메일 변경 실패', 
+        details: result.message 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 이메일 변경 API 에러', 
+      details: errorMessage 
+    };
+  }
+};
+
+// 비밀번호 변경 테스트
+export const testUpdatePassword = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const currentPassword = "test123456"; // 테스트 계정의 현재 비밀번호
+    const newPassword = "newtest123456";
+    const confirmNewPassword = "newtest123456";
+    
+    const result = await updatePassword(currentPassword, newPassword, confirmNewPassword);
+    
+    if (result.success) {
+      return { 
+        message: '✅ 비밀번호 변경 성공!', 
+        details: '비밀번호가 성공적으로 변경되었습니다'
+      };
+    } else {
+      return { 
+        message: '❌ 비밀번호 변경 실패', 
+        details: result.message 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 비밀번호 변경 API 에러', 
+      details: errorMessage 
+    };
+  }
+};
+
+// 프로필 이미지 변경 테스트
+export const testUpdateProfileImage = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const testImageUrl = `https://example.com/test-image-${Math.floor(Math.random() * 1000)}.jpg`;
+    const result = await updateProfileImage(testImageUrl);
+    
+    if (result.success) {
+      return { 
+        message: '✅ 프로필 이미지 변경 성공!', 
+        details: `새 이미지 URL: ${testImageUrl}`
+      };
+    } else {
+      return { 
+        message: '❌ 프로필 이미지 변경 실패', 
+        details: result.message 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 프로필 이미지 변경 API 에러', 
+      details: errorMessage 
+    };
   }
 };
