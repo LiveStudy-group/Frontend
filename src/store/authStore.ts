@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { setAuthToken } from '../lib/api/token';
 
 interface AuthState {
   isLoggedIn: boolean;
@@ -120,11 +121,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // 토큰 자동 복원 함수
-      initializeAuth: async () => {
+      initializeAuth: () => {
         const state = get();
         if (state.token && state.isLoggedIn) {
-          // JWT 토큰을 axios 헤더에 설정
-          const { setAuthToken } = await import('../lib/api/auth');
           setAuthToken(state.token);
         }
       },

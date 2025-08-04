@@ -18,12 +18,10 @@ function App() {
 
   // 앱 시작 시 토큰 자동 복원
   useEffect(() => {
-    if (initializeAuth) {
-      initializeAuth();
-      console.log('🔐 인증 시스템 초기화 완료');
-    }
+    initializeAuth?.();
+    console.log('🔐 인증 시스템 초기화 완료');
   }, [initializeAuth]);
-  
+
   return (
     <Routes>
       {/* 공개 라우트 */}
@@ -31,31 +29,37 @@ function App() {
       <Route path='/login' element={<LoginPage />} />
       <Route path='/email-login' element={<EmailLoginPage />} />
       <Route path='/join' element={<JoinPage />} />
+      <Route path='/test-page' element={<TestPage />} />
+      <Route path='/block-test-page' element={<BlockTestPage />} />
       <Route path='*' element={<NotFoundPage />} />
-      <Route path='test-page' element={<TestPage />} />
-      <Route path='block-test-page' element={<BlockTestPage />} />
 
       {/* 보호 라우트 */}
-      <Route path='/main' element={
+      <Route
+        path='/main'
+        element={
           <PrivateRoute>
             <MainPage />
           </PrivateRoute>
-        } 
+        }
       />
-      <Route path='studyroom/:id' element={
-        <PrivateRoute>
-          <StudyRoomPage /> 
-        </PrivateRoute>
-        } 
+      <Route
+        path='/studyroom/:id'
+        element={
+          <PrivateRoute>
+            <StudyRoomPage />
+          </PrivateRoute>
+        }
       />
-      <Route path='/mypage' element={
+      <Route
+        path='/mypage'
+        element={
           <PrivateRoute>
             <MyPage />
           </PrivateRoute>
-        } 
+        }
       />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;
