@@ -1,6 +1,5 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
 import api from '../lib/api/axios';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/common/Footer';
@@ -19,22 +18,6 @@ const StudyRoomPage = () => {
   const { user, token: accessToken } = useAuthStore();
 
 
-  // 스터디룸 퇴장 처리
-  const handleLeaveRoom = async () => {
-    try {
-      await axios.post(`/api/study-rooms/leave`, null, {
-        params: {
-          userId: identity, 
-        },
-      });
-
-      navigate('/main');
-    } catch (err) {
-      console.error('퇴장 실패:', err);
-      alert('스터디룸 퇴장 중 오류가 발생했습니다.');
-    }
-  };
-  
   // 사용자 인증 정보가 없거나 토큰이 없는 경우 경고
   useEffect(() => {
     if (!user || !accessToken) {
@@ -43,7 +26,7 @@ const StudyRoomPage = () => {
     }
 
     const fetchToken = async () => {
-      const generatedIdentity = 'user_' + Math.floor(Math.random() * 10000);
+      const generatedIdentity = user!.uid; // user는 위에서 체크했으므로 non-null 단언
       setIdentity(generatedIdentity);
 
       try {
@@ -88,6 +71,34 @@ const StudyRoomPage = () => {
 
     return null;
   };
+
+
+  // 스터디룸 퇴장 처리
+  const handleLeaveRoom = async () => {
+    if (!user) {
+      alert('사용자 정보가 없습니다.');
+      return;
+    }
+
+    try {
+      await api.post(`/api/study-rooms/leave`, null, {
+        params: {
+          userId: user.uid, 
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`, 
+        },
+      });
+
+      navigate('/main');
+    } catch (err) {
+      console.error('퇴장 실패:', err);
+      alert('스터디룸 퇴장 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 토큰 없으면 렌더링하지 않음
+  // if (!token) return <div>스터디룸 입장 중입니다...</div>;
 
 
   return (
