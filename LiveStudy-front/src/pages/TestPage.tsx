@@ -4,7 +4,15 @@
 // import MessageButton from "../components/MessageButton";
 // import MessageModal from "../components/MessageModal";
 import { useEffect, useState } from "react";
-import { testConnection, testLoginDemo as testLogin, testSignupDemo as testSignup } from "../lib/api/auth";
+import { 
+  testConnection, 
+  testLoginDemo as testLogin, 
+  testSignupDemo as testSignup,
+  testUpdateNickname,
+  testUpdateEmail,
+  testUpdatePassword,
+  testUpdateProfileImage
+} from "../lib/api/auth";
 
 // 테스트 결과 타입 정의
 interface TestResult {
@@ -17,6 +25,10 @@ interface TestResults {
   connection?: TestResult;
   login?: TestResult;
   signup?: TestResult;
+  updateNickname?: TestResult;
+  updateEmail?: TestResult;
+  updatePassword?: TestResult;
+  updateProfileImage?: TestResult;
 }
 
 export default function TestPage() {
@@ -67,6 +79,66 @@ export default function TestPage() {
     }
     setLoading(false);
   };
+
+  // 4. 닉네임 변경 API 테스트
+  const handleNicknameTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testUpdateNickname();
+      console.log("✅ 닉네임 변경 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, updateNickname: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 닉네임 변경 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '닉네임 변경 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, updateNickname: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
+  // 5. 이메일 변경 API 테스트
+  const handleEmailTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testUpdateEmail();
+      console.log("✅ 이메일 변경 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, updateEmail: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 이메일 변경 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '이메일 변경 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, updateEmail: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
+  // 6. 비밀번호 변경 API 테스트
+  const handlePasswordTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testUpdatePassword();
+      console.log("✅ 비밀번호 변경 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, updatePassword: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 비밀번호 변경 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '비밀번호 변경 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, updatePassword: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
+  // 7. 프로필 이미지 변경 API 테스트
+  const handleProfileImageTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testUpdateProfileImage();
+      console.log("✅ 프로필 이미지 변경 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, updateProfileImage: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 프로필 이미지 변경 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '프로필 이미지 변경 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, updateProfileImage: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
   
   // 자동으로 기본 연결 테스트 실행
   useEffect(() => {
@@ -84,31 +156,72 @@ export default function TestPage() {
           </p>
         </div>
 
-        {/* 테스트 버튼들 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <button 
-            onClick={handleConnectionTest}
-            disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
-          >
-            {loading ? '확인 중...' : '1️⃣ 서버 연결 확인'}
-          </button>
-          
-          <button 
-            onClick={handleLoginTest}
-            disabled={loading}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
-          >
-            {loading ? '확인 중...' : '2️⃣ 로그인 API 확인'}
-          </button>
-          
-          <button 
-            onClick={handleSignupTest}
-            disabled={loading}
-            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
-          >
-            {loading ? '확인 중...' : '3️⃣ 회원가입 API 확인'}
-          </button>
+        {/* 기본 인증 API 테스트 */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">🔐 기본 인증 API</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button 
+              onClick={handleConnectionTest}
+              disabled={loading}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '1️⃣ 서버 연결 확인'}
+            </button>
+            
+            <button 
+              onClick={handleLoginTest}
+              disabled={loading}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '2️⃣ 로그인 API 확인'}
+            </button>
+            
+            <button 
+              onClick={handleSignupTest}
+              disabled={loading}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '3️⃣ 회원가입 API 확인'}
+            </button>
+          </div>
+        </div>
+
+        {/* 마이페이지 API 테스트 */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">👤 마이페이지 API</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button 
+              onClick={handleNicknameTest}
+              disabled={loading}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '📝 닉네임 변경'}
+            </button>
+            
+            <button 
+              onClick={handleEmailTest}
+              disabled={loading}
+              className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '📧 이메일 변경'}
+            </button>
+            
+            <button 
+              onClick={handlePasswordTest}
+              disabled={loading}
+              className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '🔒 비밀번호 변경'}
+            </button>
+            
+            <button 
+              onClick={handleProfileImageTest}
+              disabled={loading}
+              className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '🖼️ 프로필 이미지'}
+            </button>
+          </div>
         </div>
 
         {/* 테스트 결과 */}

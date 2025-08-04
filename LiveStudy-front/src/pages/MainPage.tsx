@@ -24,7 +24,7 @@ const MainPage = () => {
 
     try {
       const tracks = await createLocalTracks({ video: true, audio: true });
-      console.log('getUserMedia 성공', tracks);
+      // console.log('getUserMedia 성공', tracks);
       tracks.forEach((t) => t.stop());
     } catch (err) {
       console.error('getUserMedia 실패:', err);
