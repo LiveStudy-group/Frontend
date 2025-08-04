@@ -1,5 +1,5 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
-import axios from 'axios';
+import api from '../lib/api/axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/common/Footer';
@@ -7,58 +7,50 @@ import Header from '../components/common/Header';
 import MessageButton from '../components/MessageButton';
 import MessageModal from '../components/MessageModal';
 import VideoGrid from '../components/video/VideoGrid';
+import { useAuthStore } from '../store/authStore';
+
 
 const StudyRoomPage = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState('');
   const [identity, setIdentity] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user, token: accessToken } = useAuthStore();
 
 
-  // 스터디룸 퇴장 처리
-  const handleLeaveRoom = async () => {
-    try {
-      await axios.post(`/api/study-rooms/leave`, null, {
-        params: {
-          userId: identity, 
-        },
-      });
-
-      navigate('/main');
-    } catch (err) {
-      console.error('퇴장 실패:', err);
-      alert('스터디룸 퇴장 중 오류가 발생했습니다.');
-    }
-  };
-
+  // 사용자 인증 정보가 없거나 토큰이 없는 경우 경고
   useEffect(() => {
-    // 스터디룸 입장을 위한 토큰을 서버에서 요청
+    if (!user || !accessToken) {
+      console.warn('사용자 인증 정보 없음');
+      return;
+    }
+
     const fetchToken = async () => {
-      const generatedIdentity = 'user_' + Math.floor(Math.random() * 10000);
+      const generatedIdentity = user!.uid; // user는 위에서 체크했으므로 non-null 단언
       setIdentity(generatedIdentity);
 
       try {
-        const res = await fetch(
-          `http://localhost:5001/token?roomName=studyroom1&identity=${generatedIdentity}`
+        const res = await api.post(
+          '/api/livekit/token',
+          {
+            roomName: 'studyroom',
+            identity: generatedIdentity,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
-        const data = await res.json();
-        setToken(data.token);
+        setToken(res.data.token);
       } catch (err) {
         console.error('토큰 생성 실패:', err);
       }
     };
 
     fetchToken();
-  }, []);
+  }, [user, accessToken]);
 
-  // 토큰이 아직 생성되지 않은 경우 로딩 화면 출력
-  // if (!token) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen text-lg">
-  //       토큰 생성 중입니다. 브라우저 권한을 허용했는지 확인해주세요.
-  //     </div>
-  //   );
-  // }
 
   // 디버깅 용 나중에 삭제 예정
   const RoomLogger = () => {
@@ -79,6 +71,34 @@ const StudyRoomPage = () => {
 
     return null;
   };
+
+
+  // 스터디룸 퇴장 처리
+  const handleLeaveRoom = async () => {
+    if (!user) {
+      alert('사용자 정보가 없습니다.');
+      return;
+    }
+
+    try {
+      await api.post(`/api/study-rooms/leave`, null, {
+        params: {
+          userId: user.uid, 
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`, 
+        },
+      });
+
+      navigate('/main');
+    } catch (err) {
+      console.error('퇴장 실패:', err);
+      alert('스터디룸 퇴장 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 토큰 없으면 렌더링하지 않음
+  // if (!token) return <div>스터디룸 입장 중입니다...</div>;
 
 
   return (

@@ -1,14 +1,23 @@
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { createLocalTracks } from 'livekit-client';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import Header from '../components/common/Header';
+import { useAuthStore } from '../store/authStore'; 
+import api from '../lib/api/axios';
 
 const MainPage = () => {
   const navigate = useNavigate();
-
+  const user = useAuthStore((state) => state.user);
+  
   // 스터디룸 입장하기 버튼 클릭 시 스터디룸으로 이동
   const handleEnterStudyRoom = async () => {
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
     const AudioContextClass =
       typeof window.AudioContext !== 'undefined'
         ? window.AudioContext
@@ -33,17 +42,16 @@ const MainPage = () => {
     }
 
     try {
-      const response = await axios.post('/api/study-room/enter', {
-        userId: 'test-user-id',
-        roomId: 'study-room-123',
+      const response = await api.post('/api/study-rooms/enter', null, {
+        params: { userId: user.uid },
       });
 
-      const { roomId } = response.data;
+      const roomId = response.data; 
       navigate(`/studyroom/${roomId}`);
       
     }catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
-      alert(err.response?.data?.message ?? '오류가 발생했습니다.');
+      alert(err.response?.data?.message ?? '스터디룸 입장 중 오류가 발생했습니다.');
     }
   };
 

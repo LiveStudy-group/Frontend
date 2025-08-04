@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginWithStore } from "../lib/api/auth";
+import { setAuthToken } from '../lib/api/token';
 
 export default function EmailLoginPage() {
   const [email, setEmail] = useState('')
@@ -17,8 +18,9 @@ export default function EmailLoginPage() {
     try {
       const result = await loginWithStore(email, password);
       
-      if (result.success) {
-        alert(`환영합니다 ! ${result.user?.nickname}님`)
+      if (result.success && result.token) {
+        setAuthToken(result.token);
+        localStorage.setItem('token', result.token); 
         navigate('/main');
       } else {
         alert(result.error || '로그인에 실패했습니다.')
