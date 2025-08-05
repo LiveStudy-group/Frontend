@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import BlockTestPage from './components/TestMessagePage';
+import ChatTestPage from './pages/ChatTestPage';
 import EmailLoginPage from './pages/EmailLoginPage';
 import NotFoundPage from './pages/Error/NotFoundPage';
 import JoinPage from './pages/JoinPage';
@@ -31,6 +32,7 @@ function App() {
       <Route path='/join' element={<JoinPage />} />
       <Route path='/test-page' element={<TestPage />} />
       <Route path='/block-test-page' element={<BlockTestPage />} />
+      <Route path='/chat-test' element={<ChatTestPage />} />
       <Route path='*' element={<NotFoundPage />} />
 
       {/* 보호 라우트 */}

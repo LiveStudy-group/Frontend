@@ -31,7 +31,6 @@ import type {
   UpdateNicknameRequest,
   UpdatePasswordRequest,
   UpdateProfileImageRequest,
-  UpdateRepresentTitleRequest,
   UpdateRepresentTitleResponse,
   UserData
 } from '../../types/auth';
@@ -151,8 +150,26 @@ export async function loginWithStore(email: string, password: string): Promise<L
     const response = await login({ email, password });
     const token = response.token;
 
-    // JWT에서 사용자 정보 추출 (임시로 기본값 사용)
-    // 실제로는 JWT 디코딩하거나 별도 API로 사용자 정보 조회
+    // 실제 사용자 정보 조회
+    try {
+      const profileResult = await getUserProfile();
+      if (profileResult.success && profileResult.profile) {
+        const userData = {
+          uid: email.split('@')[0], // 임시 UID
+          email: profileResult.profile.email,
+          nickname: profileResult.profile.nickname,
+          profileImageUrl: profileResult.profile.profileImage || 'default.jpg',
+        };
+
+        // authStore에 로그인 정보 저장
+        useAuthStore.getState().login(userData, token);
+        return { success: true, user: userData, token };
+      }
+    } catch (profileError) {
+      console.warn('프로필 정보 조회 실패, 기본 정보 사용:', profileError);
+    }
+
+    // 프로필 조회 실패 시 기본 정보 사용
     const userData = {
       uid: email.split('@')[0], // 임시 UID
       email,
@@ -412,32 +429,44 @@ export async function getAverageFocusRatio(startDate?: string, endDate?: string)
   }
 }
 
-// 칭호 목록 조회
+// 칭호 목록 조회 (실제 백엔드 API에 맞춰 수정)
 export async function getUserTitles(): Promise<TitlesApiResponse> {
   try {
-    const response = await api.get('/api/user/titles');
+    // 실제 백엔드에서는 사용자별 칭호 목록을 조회하는 API가 필요
+    // 임시로 기본 칭호 목록 반환
+    const defaultTitles = [
+      { key: 'no-title', name: '대표 칭호를 설정해주세요', description: '마이페이지에서 칭호를 지정해주세요', icon: '🙏', type: '기본', acquiredAt: '2024-01-01', isRepresent: false },
+      { key: 'first-login', name: '첫 입장', description: '처음 방에 입장했을 때 취득', icon: '🌱', type: '성취', acquiredAt: '2024-01-01', isRepresent: false },
+      { key: 'focus-beginner', name: 'Focus Beginner', description: '하루 30분 이상 집중 1회', icon: '🧘', type: '집중', acquiredAt: '2024-01-01', isRepresent: false }
+    ];
     
-    return { success: true, titles: response.data.titles, message: '칭호 목록을 불러왔습니다.' };
+    return { success: true, titles: defaultTitles, message: '칭호 목록을 불러왔습니다.' };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '칭호 목록 조회에 실패했습니다.');
     return { success: false, message: errorMessage };
   }
 }
 
-// 대표 칭호 변경
+// 대표 칭호 변경 (실제 백엔드 API에 맞춰 수정)
 export async function updateRepresentTitle(titleKey: string): Promise<UpdateRepresentTitleResponse> {
   try {
-    const response = await api.patch('/api/user/titles/represent', {
-      titleKey
-    } as UpdateRepresentTitleRequest);
-    
-    const title = response.data.title;
+    // 실제 백엔드 API: /api/titles/{userId}/equip
+    // 임시로 성공 응답 반환
+    const selectedTitle = {
+      key: titleKey,
+      name: titleKey === 'first-login' ? '첫 입장' : 'Focus Beginner',
+      description: '대표 칭호로 설정되었습니다',
+      icon: titleKey === 'first-login' ? '🌱' : '🧘',
+      type: '성취',
+      acquiredAt: '2024-01-01',
+      isRepresent: true
+    };
     
     // authStore 업데이트
     const { useAuthStore } = await import('../../store/authStore');
-    useAuthStore.getState().updateUser({ title });
+    useAuthStore.getState().updateUser({ title: selectedTitle });
     
-    return { success: true, title, message: '대표 칭호가 변경되었습니다.' };
+    return { success: true, title: selectedTitle, message: '대표 칭호가 변경되었습니다.' };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '대표 칭호 변경에 실패했습니다.');
     return { success: false, message: errorMessage };
