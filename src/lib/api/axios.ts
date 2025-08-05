@@ -1,10 +1,7 @@
 import axios from 'axios';
 
-// 환경변수가 없으면 기본값 사용
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.NODE_ENV === 'development' 
-    ? 'http://localhost:8080/api' 
-    : 'https://api.live-study.com/api');
+// 실제 백엔드 API 엔드포인트 설정
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.live-study.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
