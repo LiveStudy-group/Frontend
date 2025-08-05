@@ -12,27 +12,30 @@
  * 3. 개발/데모용 테스트 함수들 (개발 환경에서만 사용)
  */
 
-import api from './axios';
 import axios from 'axios';
 import type {
-  SignUpData,
+  AverageFocusRatioApiResponse,
+  ConnectionTestResult,
+  DailyFocusApiResponse,
   LoginData,
   LoginResponse,
-  UserData,
   LoginResult,
+  ProfileApiResponse,
+  ProfileImageApiResponse,
+  SignUpData,
   SignUpResult,
-  ConnectionTestResult,
-  UpdateNicknameRequest,
+  StatsApiResponse,
+  TitlesApiResponse,
+  UpdateApiResponse,
   UpdateEmailRequest,
+  UpdateNicknameRequest,
   UpdatePasswordRequest,
   UpdateProfileImageRequest,
-  ProfileApiResponse,
-  StatsApiResponse,
-  DailyFocusApiResponse,
-  AverageFocusRatioApiResponse,
-  UpdateApiResponse,
-  ProfileImageApiResponse
+  UpdateRepresentTitleRequest,
+  UpdateRepresentTitleResponse,
+  UserData
 } from '../../types/auth';
+import api from './axios';
 
 // ============================================
 // 에러 처리 및 유틸리티 함수들
@@ -88,6 +91,19 @@ export async function login({ email, password } : LoginData): Promise<LoginRespo
     return response.data; // { token: "eyJhbGciOiJIUzI1..." }
   } catch (error) {
     handleAxiosError(error, '로그인에 실패했습니다.');
+    throw error;
+  }
+}
+
+// 이메일 중복확인 (실제 백엔드 연동)
+export async function checkEmailDuplicate(email: string): Promise<{ isAvailable: boolean; message: string }> {
+  try {
+    const response = await api.get(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+    return { isAvailable: true, message: '사용 가능한 이메일입니다.' };
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 409) {
+      return { isAvailable: false, message: '이미 사용 중인 이메일입니다.' };
+    }
     throw error;
   }
 }
@@ -396,35 +412,37 @@ export async function getAverageFocusRatio(startDate?: string, endDate?: string)
   }
 }
 
-// 칭호 목록 조회 (임시 제거 - 새로운 칭호 API 구조에 맞게 추후 구현)
-// export async function getUserTitles(): Promise<{ success: boolean; titles?: unknown[]; message: string }> {
-//   try {
-//     const response = await api.get('/api/titles');
-//     
-//     return { success: true, titles: response.data.titles, message: '칭호 목록을 불러왔습니다.' };
-//   } catch (error: unknown) {
-//     const errorMessage = handleAxiosError(error, '칭고 목록 조회에 실패했습니다.');
-//     return { success: false, message: errorMessage };
-//   }
-// }
+// 칭호 목록 조회
+export async function getUserTitles(): Promise<TitlesApiResponse> {
+  try {
+    const response = await api.get('/api/user/titles');
+    
+    return { success: true, titles: response.data.titles, message: '칭호 목록을 불러왔습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '칭호 목록 조회에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
 
-// 대표 칭호 변경 (임시 제거 - 새로운 칭호 API 구조에 맞게 추후 구현)
-// export async function updateRepresentTitle(titleId: number): Promise<{ success: boolean; title?: unknown; message: string }> {
-//   try {
-//     const response = await api.post(`/api/titles/${userId}/equip?titleId=${titleId}`);
-//     
-//     const title = response.data;
-//     
-//     // authStore 업데이트
-//     const { useAuthStore } = await import('../../store/authStore');
-//     useAuthStore.getState().updateUser({ title });
-//     
-//     return { success: true, title, message: '대표 칭호가 변경되었습니다.' };
-//   } catch (error: unknown) {
-//     const errorMessage = handleAxiosError(error, '대표 칭고 변경에 실패했습니다.');
-//     return { success: false, message: errorMessage };
-//   }
-// };
+// 대표 칭호 변경
+export async function updateRepresentTitle(titleKey: string): Promise<UpdateRepresentTitleResponse> {
+  try {
+    const response = await api.patch('/api/user/titles/represent', {
+      titleKey
+    } as UpdateRepresentTitleRequest);
+    
+    const title = response.data.title;
+    
+    // authStore 업데이트
+    const { useAuthStore } = await import('../../store/authStore');
+    useAuthStore.getState().updateUser({ title });
+    
+    return { success: true, title, message: '대표 칭호가 변경되었습니다.' };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '대표 칭호 변경에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
 
 // ============================================
 // 마이페이지 API 테스트 함수들 (개발용)
