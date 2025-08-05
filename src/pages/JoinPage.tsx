@@ -1,9 +1,6 @@
 import { useState } from "react"
-import { signUp } from "../lib/api/auth"
-import { useNavigate } from "react-router-dom"
-import { checkDuplicateEmail } from "../mocks/handlers"
-import type { AxiosError } from "axios"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { checkEmailDuplicate, signUpWithStore } from "../lib/api/auth"
 
 export default function JoinPage() {
   const [email, setEmail] = useState('')
@@ -22,12 +19,28 @@ export default function JoinPage() {
   const navigate = useNavigate()
 
   const handleCheckEmail = async () => {
+    if (!email) {
+      alert('이메일을 입력해주세요.');
+      return;
+    }
+
+    // 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('올바른 이메일 형식을 입력해주세요.');
+      return;
+    }
+
     try {
-      await checkDuplicateEmail(email);
-      alert('사용 가능한 이메일입니다.');
+      const result = await checkEmailDuplicate(email);
+      if (result.isAvailable) {
+        alert('사용 가능한 이메일입니다.');
+      } else {
+        alert('이미 사용 중인 이메일입니다.');
+      }
     } catch (error) {
-      const err = error as AxiosError<{message: string}>;
-      alert(err.response?.data?.message || '중복된 이메일입니다.')
+      console.error('이메일 중복확인 실패:', error);
+      alert('이메일 중복확인에 실패했습니다. 잠시 후 다시 시도해주세요.');
     }
   }
 
@@ -85,12 +98,22 @@ export default function JoinPage() {
     if(!validateForm()) return;
 
     try {
-      await signUp({ email, password, repassword, nickname})
-      alert('회원가입 성공! 로그인 페이지로 이동합니다.')
-      navigate('/email-login')
+      const result = await signUpWithStore({
+        email,
+        password,
+        nickname,
+        introduction: '안녕하세요!'
+      });
+      
+      if (result.success) {
+        alert('회원가입 성공! 로그인 페이지로 이동합니다.')
+        navigate('/email-login')
+      } else {
+        alert(result.error || '회원가입에 실패했습니다.')
+      }
     } catch (error) {
-      const err = error as AxiosError<{ message: string }>
-      alert(err.response?.data?.message || '회원가입 실패')
+      const errorMessage = error instanceof Error ? error.message : '회원가입 처리 중 오류가 발생했습니다.';
+      alert(errorMessage);
     }
   };
 
@@ -160,16 +183,6 @@ export default function JoinPage() {
             onChange={(e) => setNickname(e.target.value)}
             />
           </div>
-          {/* <div>
-            <span className="text-caption1_M mb-2">전화번호</span>
-            <input 
-              type="text" 
-              className="w-full px-4 py-3 bg-white rounded-lg border border-gray-300 text-body1_R" 
-              placeholder="전화번호를 입력해주세요."
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div> */}
         </div>
         <div className="w-full space-y-3 my-4">
           {/* 일괄 동의 */}

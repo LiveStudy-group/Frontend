@@ -68,9 +68,7 @@ export const useAuthStore = create<AuthState>()(
             ? {
                 ...state.user,
                 ...updates,
-                title: updates?.title
-                  ? { ...state.user.title, ...updates.title }
-                  : state.user.title,
+                title: updates?.title || state.user.title,
               }
             : null,
         })),

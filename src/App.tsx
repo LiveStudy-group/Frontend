@@ -1,16 +1,16 @@
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import NotFoundPage from './pages/Error/NotFoundPage';
-import LandingPage from './pages/LandingPage';
-import StudyRoomPage from './pages/StudyRoomPage';
-import MainPage from './pages/MainPage';
-import TestPage from './pages/TestPage';
-import LoginPage from './pages/LoginPage';
-import JoinPage from './pages/JoinPage';
-import MyPage from './pages/MyPage';
-import EmailLoginPage from './pages/EmailLoginPage';
-import PrivateRoute from './routes/PrivateRoute';
 import BlockTestPage from './components/TestMessagePage';
+import EmailLoginPage from './pages/EmailLoginPage';
+import NotFoundPage from './pages/Error/NotFoundPage';
+import JoinPage from './pages/JoinPage';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import MainPage from './pages/MainPage';
+import MyPage from './pages/MyPage';
+import StudyRoomPage from './pages/StudyRoomPage';
+import TestPage from './pages/TestPage';
+import PrivateRoute from './routes/PrivateRoute';
 import { useAuthStore } from './store/authStore';
 
 function App() {

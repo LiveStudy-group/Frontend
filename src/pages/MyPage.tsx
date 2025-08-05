@@ -1,20 +1,22 @@
-import { useState, useRef, useEffect } from "react";
-import Header from "../components/common/Header";
-import Footer from "../components/common/Footer";
+import { useEffect, useRef, useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
-import { useAuthStore } from "../store/authStore";
-import { 
-  updateNickname, 
-  updateEmail, 
-  updatePassword, 
-  updateProfileImage, 
+import Footer from "../components/common/Footer";
+import Header from "../components/common/Header";
+import {
   getUserProfile,
-  getUserStats
+  getUserStats,
+  getUserTitles,
+  updateEmail,
+  updateNickname,
+  updatePassword,
+  updateProfileImage,
+  updateRepresentTitle
 } from "../lib/api/auth";
+import { useAuthStore } from "../store/authStore";
 
 export default function MyPage() {
   const { user } = useAuthStore();
-  const [titles, setTitles] = useState<{ name: string; key: string; type: string; description: string; acquiredAt: string }[]>([]);
+  const [titles, setTitles] = useState<{ name: string; key: string; type: string; description: string; acquiredAt: string; icon: string; isRepresent: boolean }[]>([]);
   const [selectedTitle, setSelectedTitle] = useState("");
   const [userStats, setUserStats] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -39,26 +41,64 @@ useEffect(() => {
         setNickname(profile.nickname || "");
         setEmail(profile.email || "");
         setSelectedTitle(profile.selectedTitle || "");
+      } else {
+        console.warn("프로필 정보 조회 실패:", profileResult.message);
+        // authStore에서 기본 정보 사용
+        if (user) {
+          setProfileImage(user.profileImageUrl || "/img/my-page-profile-image-1.jpg");
+          setNickname(user.nickname || "");
+          setEmail(user.email || "");
+        }
       }
       
       // 통계 정보 조회
       const statsResult = await getUserStats();
       if (statsResult.success && statsResult.stats) {
         setUserStats(statsResult.stats);
+      } else {
+        console.warn("통계 정보 조회 실패:", statsResult.message);
+        // 기본 통계 데이터 설정
+        setUserStats({
+          totalStudyTime: 0,
+          totalAttendanceDays: 0,
+          continueAttendanceDays: 0
+        });
+      }
+
+      // 칭호 목록 조회
+      const titlesResult = await getUserTitles();
+      if (titlesResult.success && titlesResult.titles) {
+        setTitles(titlesResult.titles);
+      } else {
+        console.warn("칭호 목록 조회 실패:", titlesResult.message);
+        // 기본 칭호 데이터 설정
+        setTitles([
+          { name: "신입생", key: "newbie", type: "기본", description: "첫 시작", acquiredAt: "2024-01-01", icon: "🎓", isRepresent: false },
+          { name: "집중왕", key: "focus_master", type: "성취", description: "집중 달인", acquiredAt: "2024-01-15", icon: "🔥", isRepresent: false }
+        ]);
       }
     } catch (error) {
       console.error("사용자 데이터 조회 실패:", error);
+      // 에러 시 기본 데이터 사용
+      if (user) {
+        setProfileImage(user.profileImageUrl || "/img/my-page-profile-image-1.jpg");
+        setNickname(user.nickname || "");
+        setEmail(user.email || "");
+      }
+      setUserStats({
+        totalStudyTime: 0,
+        totalAttendanceDays: 0,
+        continueAttendanceDays: 0
+      });
+      setTitles([
+        { name: "신입생", key: "newbie", type: "기본", description: "첫 시작", acquiredAt: "2024-01-01", icon: "🎓", isRepresent: false },
+        { name: "집중왕", key: "focus_master", type: "성취", description: "집중 달인", acquiredAt: "2024-01-15", icon: "🔥", isRepresent: false }
+      ]);
     }
   };
   
   fetchUserData();
-  
-  // 임시 칭호 데이터 설정 (칭호 API는 추후 구현)
-  setTitles([
-    { name: "신입생", key: "newbie", type: "기본", description: "첫 시작", acquiredAt: "2024-01-01" },
-    { name: "집중왕", key: "focus_master", type: "성취", description: "집중 달인", acquiredAt: "2024-01-15" }
-  ]);
-}, []);
+}, [user]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -148,21 +188,23 @@ useEffect(() => {
     const selected = e.target.value;
     setSelectedTitle(selected);
 
-    // 임시: 칭호 변경 API는 새로운 구조로 구현 예정
-    alert("🚧 칭호 변경 기능은 새로운 API 구조로 구현 예정입니다.");
-    
-    // TODO: 새로운 칭호 API 구조에 맞게 구현
-    // try {
-    //   const result = await updateRepresentTitle(titleId);
-    //   if (result.success) {
-    //     alert(result.message);
-    //   } else {
-    //     alert(result.message);
-    //   }
-    // } catch (err) {
-    //   console.error("대표 칭호 변경 실패:", err);
-    //   alert("대표 칭호 변경에 실패했습니다.");
-    // }
+    if (!selected) {
+      alert("칭호를 선택해주세요.");
+      return;
+    }
+
+    try {
+      const result = await updateRepresentTitle(selected);
+      if (result.success) {
+        console.log("칭호 변경 성공:", result.title);
+        alert(result.message);
+      } else {
+        alert(result.message || "칭호 변경에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error("대표 칭호 변경 실패:", err);
+      alert("대표 칭호 변경에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
   };
 
   return (
@@ -356,9 +398,10 @@ useEffect(() => {
                 onChange={handleTitleChange}
                 className="w-full appearance-none bg-gray-100 border border-gray-300 text-body1_M px-4 py-2 rounded-md shadow-inner focus:ring-2 focus:ring-primary-400 focus:outline-none"
               >
+                <option value="">대표 칭호를 선택해주세요</option>
                 {titles.map((title, idx) => (
                   <option key={idx} value={title.key}>
-                    {title.name}
+                    {title.icon} {title.name} - {title.description}
                   </option>
                 ))}
               </select>
