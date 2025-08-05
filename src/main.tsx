@@ -11,8 +11,8 @@ import './styles/global.css';
   // 환경변수: VITE_USE_MOCK=true 설정 시만 Mock 사용
   // 실제 배포에서는 사용되지 않음
   
-  // 개발 환경에서는 Mock API를 기본으로 사용
-  const useMock = import.meta.env.VITE_USE_MOCK === 'true' || import.meta.env.NODE_ENV === 'development';
+  // 개발 환경에서만 Mock API 사용 (배포 환경에서는 실제 API 사용)
+  const useMock = import.meta.env.VITE_USE_MOCK === 'true' && import.meta.env.NODE_ENV === 'development';
   
   if (useMock) {
     const { worker, workerOptions } = await import('./mocks/browser.ts')
