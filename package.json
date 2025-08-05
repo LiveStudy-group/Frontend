@@ -12,6 +12,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@livekit/components-react": "^2.9.13",
+    "@stomp/stompjs": "^7.1.1",
     "axios": "^1.10.0",
     "feather-icons": "^4.29.2",
     "livekit-client": "^2.15.2",

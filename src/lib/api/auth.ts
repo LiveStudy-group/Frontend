@@ -151,8 +151,26 @@ export async function loginWithStore(email: string, password: string): Promise<L
     const response = await login({ email, password });
     const token = response.token;
 
-    // JWT에서 사용자 정보 추출 (임시로 기본값 사용)
-    // 실제로는 JWT 디코딩하거나 별도 API로 사용자 정보 조회
+    // 실제 사용자 정보 조회
+    try {
+      const profileResult = await getUserProfile();
+      if (profileResult.success && profileResult.profile) {
+        const userData = {
+          uid: email.split('@')[0], // 임시 UID
+          email: profileResult.profile.email,
+          nickname: profileResult.profile.nickname,
+          profileImageUrl: profileResult.profile.profileImage || 'default.jpg',
+        };
+
+        // authStore에 로그인 정보 저장
+        useAuthStore.getState().login(userData, token);
+        return { success: true, user: userData, token };
+      }
+    } catch (profileError) {
+      console.warn('프로필 정보 조회 실패, 기본 정보 사용:', profileError);
+    }
+
+    // 프로필 조회 실패 시 기본 정보 사용
     const userData = {
       uid: email.split('@')[0], // 임시 UID
       email,
