@@ -168,4 +168,38 @@ export interface UserTitleResponse {
   description: string;
   representative: boolean;
   isRepresentative: boolean;
+}
+
+// ============================================
+// 칭호 관련 타입 정의 (새로 추가)
+// ============================================
+
+// 칭호 정보 타입
+export interface Title {
+  key: string;
+  name: string;
+  description: string;
+  icon: string;
+  type: string;
+  acquiredAt: string;
+  isRepresent: boolean;
+}
+
+// 칭호 목록 조회 응답 타입
+export interface TitlesApiResponse {
+  success: boolean;
+  titles?: Title[];
+  message: string;
+}
+
+// 대표 칭호 변경 요청 타입
+export interface UpdateRepresentTitleRequest {
+  titleKey: string;
+}
+
+// 대표 칭호 변경 응답 타입
+export interface UpdateRepresentTitleResponse {
+  success: boolean;
+  title?: Title;
+  message: string;
 } 

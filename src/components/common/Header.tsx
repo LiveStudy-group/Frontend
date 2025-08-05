@@ -50,12 +50,12 @@ const Header = () => {
             <div className="text-sm text-right">
               <div>
                 <span className="text-caption1_M">환영합니다 !</span>
-                {user?.title?.key === 'no-title' ? (
-                  <span className="text-gray-300 mx-1">대표 칭호를 선택해주세요.</span>
+                {user?.title?.key && user?.title?.key !== 'no-title' && user?.title?.name && user?.title?.name !== '대표 칭호를 설정해주세요!' ? (
+                  <span className="text-primary-400 mx-1 font-medium">{user?.title?.icon} {user?.title?.name}</span>
                 ) : (
-                  <span className="text-primary-400 mx-1">{user?.title?.icon} {user?.title?.name}</span>
+                  <span className="text-gray-300 mx-1">대표 칭호를 선택해주세요.</span>
                 )}
-                <span>{user?.nickname}님 !</span>
+                <span className="font-medium">{user?.nickname}님 !</span>
               </div>
               <div className="text-xs">
                 오늘 집중 시간 : <strong>02:03:56</strong>

@@ -221,6 +221,30 @@ export const handlers = [
       );
     }
 
+    // 회원가입한 계정으로도 로그인 가능하도록 허용
+    // 실제로는 회원가입 시 저장된 계정 정보를 확인해야 함
+    if(email && password && password.length >= 6) {
+      return res(
+        ctx.status(200),
+        ctx.json({
+          message: '로그인 성공',
+          user: {
+            uid: `user-${Date.now()}`,
+            email,
+            nickname: email.split('@')[0],
+            title: currentTitle?.key ? currentTitle : {
+              id: 0,
+              key: 'no-title',
+              name: '현재 보유한 칭호가 없어요.',
+              description: '마이페이지에서 칭호를 지정해주세요.',
+              icon: '❔',
+            },
+            token: `fake-jwt-token-${Date.now()}`
+          }
+        })
+      );
+    }
+
     return res(
       ctx.status(401),
       ctx.json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.'})
