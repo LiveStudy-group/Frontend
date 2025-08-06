@@ -43,7 +43,7 @@ function App() {
         }
       />
       <Route
-        path='/studyroom/:id'
+        path="/studyroom/:roomId"
         element={
           <PrivateRoute>
             <StudyRoomPage />

@@ -1,12 +1,12 @@
+import { useRoomContext } from '@livekit/components-react';
 import {
   LocalParticipant,
   Participant,
+  RoomEvent,
   Track,
   TrackPublication,
-  RoomEvent,
 } from 'livekit-client';
 import { useEffect, useRef } from 'react';
-import { useRoomContext } from '@livekit/components-react';
 
 interface Props {
   participant: Participant;
@@ -17,7 +17,7 @@ const LiveVideoBox = ({ participant }: Props) => {
   const room = useRoomContext();
 
   useEffect(() => {
-     const attachTrack = (track: Track) => {
+    const attachTrack = (track: Track) => {
       if (track.kind === Track.Kind.Video && videoRef.current) {
         track.attach(videoRef.current);
         videoRef.current
@@ -33,7 +33,9 @@ const LiveVideoBox = ({ participant }: Props) => {
       }
     };
 
-    // 로컬 참가자인 경우
+    const unsubscribers: (() => void)[] = [];
+
+    // 로컬 참가자 처리
     if (participant instanceof LocalParticipant) {
       const cameraPub = participant.getTrackPublication(Track.Source.Camera);
       if (cameraPub?.track) {
@@ -47,11 +49,13 @@ const LiveVideoBox = ({ participant }: Props) => {
       };
 
       room.on(RoomEvent.LocalTrackPublished, onLocalTrackPublished);
+      unsubscribers.push(() =>
+        room.off(RoomEvent.LocalTrackPublished, onLocalTrackPublished)
+      );
 
-      return () => {
-        if (cameraPub?.track) detachTrack(cameraPub.track);
-        room.off(RoomEvent.LocalTrackPublished, onLocalTrackPublished);
-      };
+      if (cameraPub?.track) {
+        unsubscribers.push(() => detachTrack(cameraPub.track!));
+      }
     }
 
     // 원격 참가자 처리
@@ -66,20 +70,23 @@ const LiveVideoBox = ({ participant }: Props) => {
           }
         };
         pub.on('subscribed', handler);
-        return () => pub.off('subscribed', handler);
+        unsubscribers.push(() => pub.off('subscribed', handler));
       }
     });
 
-     const handleTrackSubscribed = (track: Track) => {
+    const handleTrackSubscribed = (track: Track) => {
       if (track.kind === Track.Kind.Video) {
         attachTrack(track);
       }
     };
 
     participant.on('trackSubscribed', handleTrackSubscribed);
+    unsubscribers.push(() =>
+      participant.off('trackSubscribed', handleTrackSubscribed)
+    );
 
     return () => {
-      participant.off('trackSubscribed', handleTrackSubscribed);
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [participant, room]);
 
