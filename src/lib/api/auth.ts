@@ -433,7 +433,8 @@ export async function getAverageFocusRatio(startDate?: string, endDate?: string)
 export async function getUserTitles(): Promise<TitlesApiResponse> {
   try {
     // 실제 백엔드에서는 사용자별 칭호 목록을 조회하는 API가 필요
-    // 임시로 기본 칭호 목록 반환
+    // 현재 API 명세서에는 해당 API가 없으므로 임시로 기본 칭호 목록 반환
+    // TODO: 백엔드에서 사용자별 칭호 목록 조회 API 구현 필요
     const defaultTitles = [
       { key: 'no-title', name: '대표 칭호를 설정해주세요', description: '마이페이지에서 칭호를 지정해주세요', icon: '🙏', type: '기본', acquiredAt: '2024-01-01', isRepresent: false },
       { key: 'first-login', name: '첫 입장', description: '처음 방에 입장했을 때 취득', icon: '🌱', type: '성취', acquiredAt: '2024-01-01', isRepresent: false },
@@ -451,13 +452,22 @@ export async function getUserTitles(): Promise<TitlesApiResponse> {
 export async function updateRepresentTitle(titleKey: string): Promise<UpdateRepresentTitleResponse> {
   try {
     // 실제 백엔드 API: /api/titles/{userId}/equip
-    // 임시로 성공 응답 반환
+    // TODO: 백엔드에서 userId와 titleId를 어떻게 전달할지 확인 필요
+    // 현재는 임시로 성공 응답 반환
+    
+    // 선택된 칭호 정보 생성
     const selectedTitle = {
       key: titleKey,
-      name: titleKey === 'first-login' ? '첫 입장' : 'Focus Beginner',
-      description: '대표 칭호로 설정되었습니다',
-      icon: titleKey === 'first-login' ? '🌱' : '🧘',
-      type: '성취',
+      name: titleKey === 'first-login' ? '첫 입장' : 
+            titleKey === 'focus-beginner' ? 'Focus Beginner' : 
+            '대표 칭호를 설정해주세요',
+      description: titleKey === 'first-login' ? '처음 방에 입장했을 때 취득' :
+                  titleKey === 'focus-beginner' ? '하루 30분 이상 집중 1회' :
+                  '마이페이지에서 칭호를 지정해주세요',
+      icon: titleKey === 'first-login' ? '🌱' : 
+            titleKey === 'focus-beginner' ? '🧘' : 
+            '🙏',
+      type: titleKey === 'no-title' ? '기본' : '성취',
       acquiredAt: '2024-01-01',
       isRepresent: true
     };
