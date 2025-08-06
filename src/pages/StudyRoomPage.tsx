@@ -1,14 +1,13 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
-import api from '../lib/api/axios';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import Header from '../components/common/Header';
 import MessageButton from '../components/MessageButton';
 import MessageModal from '../components/MessageModal';
 import VideoGrid from '../components/video/VideoGrid';
+import api from '../lib/api/axios';
 import { useAuthStore } from '../store/authStore';
-
 
 const StudyRoomPage = () => {
   const navigate = useNavigate();
@@ -16,7 +15,8 @@ const StudyRoomPage = () => {
   const [identity, setIdentity] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, token: accessToken } = useAuthStore();
-
+  const { roomId } = useParams<{ roomId: string }>();
+  const numericRoomId = Number(roomId);
 
   // 사용자 인증 정보가 없거나 토큰이 없는 경우 경고
   useEffect(() => {
@@ -129,7 +129,7 @@ const StudyRoomPage = () => {
         <main className="flex-1 w-full max-w-[1280px] mx-auto flex overflow-hidden">
 
           {/* 화상 공유 컴포넌트 */}
-          <VideoGrid />
+          <VideoGrid roomId={numericRoomId} />
 
           {/* 메시지 버튼 및 모달 */}
           <MessageButton onClick={() => setIsModalOpen(true)} />

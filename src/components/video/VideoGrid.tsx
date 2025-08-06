@@ -2,14 +2,23 @@ import { useTracks } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { useState } from 'react';
 import { MdReport, MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import api from '../../lib/api/axios';
+import { useAuthStore } from '../../store/authStore';
+import type { FocusStatus } from '../../store/focusStatusStore';
+import { useFocusStatusStore } from '../../store/focusStatusStore';
 import LiveVideoBox from './LiveVideoBox';
 import VideoReportModal from './VideoReportModal';
 
-const VideoGrid = () => {
+const VideoGrid = ({ roomId }: { roomId: number })  => {
   const [reportTarget, setReportTarget] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState<string>('');
-  const [statusColors, setStatusColors] = useState<Record<string, boolean>>({});
   const [hiddenParticipants, setHiddenParticipants] = useState<Record<string, boolean>>({});
+
+  const { user, token: accessToken } = useAuthStore(); 
+  const loginUserId = user?.uid || '';
+
+  const focusStatuses = useFocusStatusStore((state) => state.focusStatuses);
+  const setStatus = useFocusStatusStore((state) => state.setStatus);
 
   // 신고 제출 처리
   const openModal = (identity: string) => {
@@ -33,11 +42,46 @@ const VideoGrid = () => {
   };
 
   // 집중, 휴식 상태 처리
-  const toggleStatusColor = (identity: string) => {
-    setStatusColors((prev) => ({
-      ...prev,
-      [identity]: !prev[identity],
-    }));
+  const toggleStatusColor = async (identity: string) => {
+    const current = focusStatuses[identity] || 'idle';
+    let next: FocusStatus;
+
+    switch (current) {
+      case 'idle':
+        next = 'focus';
+        break;
+      case 'focus':
+        next = 'pause';
+        break;
+      case 'pause':
+      default:
+        next = 'focus';
+        break;
+    }
+
+    setStatus(identity, next);
+
+    try {
+      const userId = loginUserId; 
+      switch (next) {
+        case 'focus':
+          await api.post('/api/timer/start', { userId, roomId }, {
+            headers: {
+              Authorization: `Bearer ${accessToken}` 
+            }
+          });
+          break;
+        case 'pause':
+          await api.post('/api/timer/pause', { userId, roomId }, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          });
+          break;
+      }
+    } catch (err) {
+      console.error(`[상태 변경 실패] ${identity}:`, err);
+    }
   };
 
   // 현재 참여 중인 트랙을 가져옴
@@ -80,7 +124,7 @@ const VideoGrid = () => {
               <div
                 onClick={() => toggleStatusColor(identity)}
                 className={`absolute top-1 left-1 w-2 h-2 rounded-full cursor-pointer z-50 ${
-                  statusColors[identity] ? 'bg-red-500' : 'bg-green-500'
+                  focusStatuses[identity] === 'focus' ? 'bg-green-500' : 'bg-red-500'
                 }`}
               />
               <div className="absolute top-1 right-1 flex justify-center items-center gap-[0.2rem] mt-[0.1rem]">
