@@ -13,13 +13,39 @@ const api = axios.create({
   }
 })
 
-// JWT 토큰을 요청 헤더에 자동으로 추가하는 인터셉터
+// JWT 토큰을 요청 헤더에 자동으로 추가하는 인터셉터 (인증이 필요한 API에만)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 인증이 필요한 API 경로들
+    const authRequiredPaths = [
+      '/api/user/profile',
+      '/api/user/stat',
+      '/api/user/titles',
+      '/api/titles',
+      '/api/user/profile/nickname',
+      '/api/user/profile/email',
+      '/api/user/profile/password',
+      '/api/user/profile/profileImage'
+    ];
+    
+    // 현재 요청 URL이 인증이 필요한 API인지 확인
+    const isAuthRequired = authRequiredPaths.some(path => 
+      config.url?.includes(path)
+    );
+    
+    // 인증이 필요한 API에만 토큰 추가
+    if (isAuthRequired) {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('�� 인증 토큰 추가:', config.url);
+      } else {
+        console.warn('⚠️ 토큰이 없습니다:', config.url);
+      }
+    } else {
+      console.log('🔓 인증 불필요한 API:', config.url);
     }
+    
     return config;
   },
   (error) => {
