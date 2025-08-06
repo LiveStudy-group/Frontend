@@ -261,11 +261,11 @@ export const handlers = [
     )
   }),
 
-  // 기존 닉네임 변경 핸들러
-  rest.patch('/api/user/profile/change/nickname', async (req, res, ctx) => {
-    const { nickname, profileImageUrl } = await req.json();
+  // 닉네임 변경 핸들러 (경로 수정)
+  rest.patch('/api/user/profile/nickname', async (req, res, ctx) => {
+    const { newNickname } = await req.json();
 
-    if (!nickname || nickname.length < 2) {
+    if (!newNickname || newNickname.length < 2) {
       return res(
         ctx.status(400),
         ctx.json({ message: '닉네임은 2자 이상이어야 합니다.' })
@@ -274,28 +274,22 @@ export const handlers = [
 
     return res(
       ctx.status(200),
-      ctx.json({
-        user: {
-          userId: 101,
-          nickname,
-          profileImageUrl,
-        }
-      })
+      ctx.json({ message: '닉네임이 성공적으로 변경되었습니다.' })
     );
   }),
   
-  // 이메일 주소 변경
-  rest.patch('/api/user/profile/change/email', async (req, res, ctx) => {
-    const { email } = await req.json();
+  // 이메일 주소 변경 (경로 수정)
+  rest.patch('/api/user/profile/email', async (req, res, ctx) => {
+    const { newEmail } = await req.json();
 
-    if (!email || !email.includes('@')) {
+    if (!newEmail || !newEmail.includes('@')) {
       return res(
         ctx.status(400),
         ctx.json({ message: '올바른 이메일 주소를 입력해주세요.' })
       );
     }
 
-    if (email === 'existing@example.com') {
+    if (newEmail === 'existing@example.com') {
       return res(
         ctx.status(409),
         ctx.json({ message: '이미 사용 중인 이메일입니다.' })
@@ -304,22 +298,18 @@ export const handlers = [
 
     return res(
       ctx.status(200),
-      ctx.json({
-        user: {
-          email,
-        }
-      })
+      ctx.json({ message: '이메일이 성공적으로 변경되었습니다.' })
     );
   }),
 
-  // 비밀번호 변경
-  rest.patch('/api/user/profile/change/password', async (req, res, ctx) => {
-    const { currentPassword, newPassword } = await req.json();
+  // 비밀번호 변경 (경로 수정)
+  rest.patch('/api/user/profile/password', async (req, res, ctx) => {
+    const { currentPassword, newPassword, confirmNewPassword } = await req.json();
 
-    if (!currentPassword || !newPassword) {
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
       return res(
         ctx.status(400),
-        ctx.json({ message: '현재 비밀번호와 새 비밀번호를 모두 입력해주세요.' })
+        ctx.json({ message: '모든 필드를 입력해주세요.' })
       );
     }
 
@@ -327,6 +317,13 @@ export const handlers = [
       return res(
         ctx.status(403),
         ctx.json({ message: '현재 비밀번호가 일치하지 않습니다.' })
+      );
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: '새 비밀번호와 비밀번호 확인이 일치하지 않습니다.' })
       );
     }
 
@@ -340,6 +337,26 @@ export const handlers = [
     return res(
       ctx.status(200),
       ctx.json({ message: '비밀번호가 성공적으로 변경되었습니다.' })
+    );
+  }),
+
+  // 프로필 이미지 변경 (경로 수정)
+  rest.patch('/api/user/profile/profileImage', async (req, res, ctx) => {
+    const { newProfileImage } = await req.json();
+
+    if (!newProfileImage) {
+      return res(
+        ctx.status(400),
+        ctx.json({ message: '프로필 이미지를 입력해주세요.' })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({ 
+        message: '프로필 이미지가 성공적으로 변경되었습니다.',
+        imageUrl: newProfileImage
+      })
     );
   }),
 
