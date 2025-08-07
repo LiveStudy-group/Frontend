@@ -204,7 +204,9 @@ useEffect(() => {
     }
 
     try {
-      const result = await updateRepresentTitle(selected);
+      // string을 number로 변환하여 전달
+      const titleId = parseInt(selected, 10);
+      const result = await updateRepresentTitle(titleId);
       if (result.success) {
         console.log("칭호 변경 성공");
         alert(result.message);

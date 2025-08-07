@@ -1,4 +1,5 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
+import { Participant, Track, TrackPublication } from 'livekit-client';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../components/common/Footer';
@@ -8,7 +9,6 @@ import MessageModal from '../components/MessageModal';
 import VideoGrid from '../components/video/VideoGrid';
 import api from '../lib/api/axios';
 import { useAuthStore } from '../store/authStore';
-import { Track, TrackPublication, Participant } from 'livekit-client';
 
 const StudyRoomPage = () => {
   const navigate = useNavigate();

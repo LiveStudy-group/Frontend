@@ -36,10 +36,18 @@ export interface UserData {
   newUser: boolean;
 }
 
+// 로그인된 사용자 정보 타입 (기존 호환성 유지)
+export interface LoginUser {
+  uid: string;
+  email: string;
+  nickname: string;
+  profileImageUrl?: string;
+}
+
 // 로그인 결과 타입
 export interface LoginResult {
   success: boolean;
-  user?: UserData;
+  user?: LoginUser;
   token?: string;
   error?: string;
 }
@@ -174,7 +182,7 @@ export interface ProfileImageApiResponse {
 // 칭호 관련 타입 (OpenAPI 최신 문서 기준)
 // ============================================
 
-// 칭호 응답 타입
+// 칭호 응답 타입 (OpenAPI 문서와 정확히 일치)
 export interface UserTitleResponse {
   titleId: number;
   name: string;
@@ -194,6 +202,48 @@ export interface UpdateRepresentTitleResponse {
   success: boolean;
   message: string;
   data?: UserTitleResponse;
+}
+
+// 칭호 지급 요청 타입
+export interface GrantTitleRequest {
+  userId: string;
+  activity: UserActivity;
+  stat: UserStudyStat;
+}
+
+// 사용자 활동 타입
+export interface UserActivity {
+  consecutiveFocusDays: number;
+  oneHourFocusStreak: number;
+  totalChatCount: number;
+  enteredFirstRoom: boolean;
+  reportCount: number;
+  lastLoginTime: {
+    hour: number;
+    minute: number;
+    second: number;
+    nano: number;
+  };
+  earnedTitleCount: number;
+  loggedInAt9AmToday: boolean;
+  consecutiveFocusDaysOverHour: number;
+}
+
+// 사용자 통계 타입
+export interface UserStudyStat {
+  id: number;
+  totalAttendanceDays: number;
+  continueAttendanceDays: number;
+  lastAttendanceDate: string;
+  totalStudyTime: number;
+  totalAwayTime: number;
+  consecutiveFocusDaysOverHour: number;
+  titleCount: number;
+}
+
+// 칭호 지급 응답 타입
+export interface GrantTitleResponse {
+  grantedTitleNames: string[];
 }
 
 // ============================================
