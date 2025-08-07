@@ -18,6 +18,7 @@ interface AuthState {
     };
   } | null;
   token: string | null;
+  setToken: (token: string) => void;
 
   titleList?: {
     key: string;
@@ -53,14 +54,19 @@ export const useAuthStore = create<AuthState>()(
   persist<AuthState>(
     (set, get) => ({
       isLoggedIn: false,
-        user: {
-    uid: '',
-    email: '',
-    nickname: '',
-    profileImageUrl: '',
-  },
+      user: {
+        uid: '',
+        email: '',
+        nickname: '',
+        profileImageUrl: '',
+      },
       token: null,
       titleList: [],
+
+      setToken: (token) => {
+        set({ token });
+        setAuthToken(token);
+      },
 
       updateUser: (updates) =>
         set((state) => ({
@@ -73,21 +79,9 @@ export const useAuthStore = create<AuthState>()(
             : null,
         })),
 
-        login: (
-    { uid, email, nickname, profileImageUrl, title }: {
-      uid: string;
-      email: string;
-      nickname: string;
-      profileImageUrl?: string;
-          title?: {
-            key: string;
-            name: string;
-            description: string;
-            icon: string;
-            isRepresent: boolean;
-          };
-        },
-        token: string
+      login: (
+        { uid, email, nickname, profileImageUrl, title },
+        token
       ) => {
         const defaultTitle = {
           key: "no-title",
@@ -97,19 +91,21 @@ export const useAuthStore = create<AuthState>()(
           isRepresent: true,
         };
 
-            set({
-      user: {
-        uid,
-        email,
-        nickname,
-        profileImageUrl,
-        title: title || defaultTitle,
-      },
+        set({
+          user: {
+            uid,
+            email,
+            nickname,
+            profileImageUrl,
+            title: title || defaultTitle,
+          },
           token,
           isLoggedIn: true,
         });
+        setAuthToken(token);
       },
-      logout: () => 
+
+      logout: () =>
         set({ isLoggedIn: false, user: null, token: null }),
 
       fetchTitleList: async () => {
@@ -118,7 +114,6 @@ export const useAuthStore = create<AuthState>()(
         set({ titleList: data });
       },
 
-      // 토큰 자동 복원 함수
       initializeAuth: () => {
         const state = get();
         if (state.token && state.isLoggedIn) {
@@ -130,4 +125,4 @@ export const useAuthStore = create<AuthState>()(
       name: "live-study-auth-storage",
     }
   )
-)
+);
