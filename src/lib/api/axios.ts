@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// 실제 백엔드 API 엔드포인트 설정
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.live-study.com';
+// Mock API 환경에서는 상대 경로 사용, 실제 환경에서는 절대 URL 사용
+const useMock = import.meta.env.VITE_USE_MOCK === 'true';
+const API_BASE_URL = useMock ? '' : (import.meta.env.VITE_API_BASE_URL || 'https://api.live-study.com');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
