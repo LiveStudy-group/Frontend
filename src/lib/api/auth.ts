@@ -26,6 +26,7 @@ import type {
   SignUpResult,
   StatsApiResponse,
   TitlesApiResponse,
+  TodayStudyTimeApiResponse,
   UpdateApiResponse,
   UpdateEmailRequest,
   UpdateNicknameRequest,
@@ -153,12 +154,12 @@ export async function loginWithStore(email: string, password: string): Promise<L
     // 실제 사용자 정보 조회
     try {
       const profileResult = await getUserProfile();
-      if (profileResult.success && profileResult.profile) {
+      if (profileResult.success && profileResult.data) {
         const userData = {
-          uid: email.split('@')[0], // 임시 UID
-          email: profileResult.profile.email,
-          nickname: profileResult.profile.nickname,
-          profileImageUrl: profileResult.profile.profileImage || 'default.jpg',
+          uid: email.split('@')[0], // 임시 UID (기존 호환성)
+          email: profileResult.data.email,
+          nickname: profileResult.data.nickname,
+          profileImageUrl: profileResult.data.profileImage || 'default.jpg',
         };
 
         // authStore에 로그인 정보 저장
@@ -171,7 +172,7 @@ export async function loginWithStore(email: string, password: string): Promise<L
 
     // 프로필 조회 실패 시 기본 정보 사용
     const userData = {
-      uid: email.split('@')[0], // 임시 UID
+      uid: email.split('@')[0], // 임시 UID (기존 호환성)
       email,
       nickname: email.split('@')[0], // 임시 닉네임
       profileImageUrl: 'default.jpg',
@@ -366,10 +367,10 @@ export async function updateProfileImage(imageUrl: string): Promise<ProfileImage
     const { useAuthStore } = await import('../../store/authStore');
     useAuthStore.getState().updateUser({ profileImageUrl: resultImageUrl });
     
-    return { success: true, imageUrl: resultImageUrl, message: '프로필 이미지가 변경되었습니다.' };
+    return { success: true, message: '프로필 이미지가 변경되었습니다.' };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '프로필 이미지 변경에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    throw error;
   }
 }
 
@@ -378,10 +379,10 @@ export async function getUserProfile(): Promise<ProfileApiResponse> {
   try {
     const response = await api.get('/api/user/profile');
     
-    return { success: true, profile: response.data, message: '프로필을 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '프로필 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    throw error;
   }
 }
 
@@ -390,10 +391,10 @@ export async function getUserStats(): Promise<StatsApiResponse> {
   try {
     const response = await api.get('/api/user/stat/normal');
     
-    return { success: true, stats: response.data, message: '통계를 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '통계 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    throw error;
   }
 }
 
@@ -406,10 +407,10 @@ export async function getDailyFocus(startDate?: string, endDate?: string): Promi
     
     const response = await api.get(`/api/user/stat/daily-focus?${params.toString()}`);
     
-    return { success: true, dailyFocus: response.data, message: '일별 집중도를 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '일별 집중도 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    throw error;
   }
 }
 
@@ -422,10 +423,10 @@ export async function getAverageFocusRatio(startDate?: string, endDate?: string)
     
     const response = await api.get(`/api/user/stat/average-focus-ratio?${params.toString()}`);
     
-    return { success: true, averageFocusRatio: response.data, message: '평균 집중률을 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '평균 집중률 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    throw error;
   }
 }
 
@@ -436,15 +437,14 @@ export async function getUserTitles(): Promise<TitlesApiResponse> {
     // 현재 API 명세서에는 해당 API가 없으므로 임시로 기본 칭호 목록 반환
     // TODO: 백엔드에서 사용자별 칭호 목록 조회 API 구현 필요
     const defaultTitles = [
-      { key: 'no-title', name: '대표 칭호를 설정해주세요', description: '마이페이지에서 칭호를 지정해주세요', icon: '🙏', type: '기본', acquiredAt: '2024-01-01', isRepresent: false },
-      { key: 'first-login', name: '첫 입장', description: '처음 방에 입장했을 때 취득', icon: '🌱', type: '성취', acquiredAt: '2024-01-01', isRepresent: false },
-      { key: 'focus-beginner', name: 'Focus Beginner', description: '하루 30분 이상 집중 1회', icon: '🧘', type: '집중', acquiredAt: '2024-01-01', isRepresent: false }
+      { titleId: 1, name: '첫 입장', description: '처음 방에 입장했을 때 취득', representative: false, isRepresentative: false },
+      { titleId: 2, name: 'Focus Beginner', description: '하루 30분 이상 집중 1회', representative: false, isRepresentative: false }
     ];
     
-    return { success: true, titles: defaultTitles, message: '칭호 목록을 불러왔습니다.' };
+    return { success: true, data: defaultTitles };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '칭호 목록 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    throw error;
   }
 }
 
@@ -476,10 +476,22 @@ export async function updateRepresentTitle(titleKey: string): Promise<UpdateRepr
     const { useAuthStore } = await import('../../store/authStore');
     useAuthStore.getState().updateUser({ title: selectedTitle });
     
-    return { success: true, title: selectedTitle, message: '대표 칭호가 변경되었습니다.' };
+    return { success: true, message: '대표 칭호가 변경되었습니다.' };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '대표 칭호 변경에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    throw error;
+  }
+}
+
+// 오늘 공부 시간 조회
+export async function getTodayStudyTime(): Promise<TodayStudyTimeApiResponse> {
+  try {
+    const response = await api.get('/api/user/stat/today-study-time');
+    
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '오늘 공부 시간 조회에 실패했습니다.');
+    throw error;
   }
 }
 
