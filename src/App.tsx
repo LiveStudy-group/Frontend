@@ -13,6 +13,8 @@ import StudyRoomPage from './pages/StudyRoomPage';
 import TestPage from './pages/TestPage';
 import PrivateRoute from './routes/PrivateRoute';
 import { useAuthStore } from './store/authStore';
+import Redirection from './pages/Redirection';
+
 
 function App() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -34,6 +36,7 @@ function App() {
       <Route path='/block-test-page' element={<BlockTestPage />} />
       <Route path='/chat-test' element={<ChatTestPage />} />
       <Route path='*' element={<NotFoundPage />} />
+      <Route path="/kakao/callback" element={<Redirection />} />
 
       {/* 보호 라우트 */}
       <Route
@@ -52,6 +55,7 @@ function App() {
           </PrivateRoute>
         }
       />
+      
       <Route
         path='/mypage'
         element={
