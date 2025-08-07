@@ -1,7 +1,7 @@
 // src/pages/BlockTestPage.tsx
-import MessageItem from '../components/MessageItem';
 import { useEffect } from 'react';
-import { useBlockUserStore } from '../store/blockUserStore';
+import { useBlockUserStore } from '../../store/blockUserStore';
+import MessageItem from '../MessageItem';
 
 const dummyMessages = [
   {
