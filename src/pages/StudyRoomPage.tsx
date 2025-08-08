@@ -1,5 +1,6 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
-import { useEffect, useState } from 'react';
+import { Participant, Track, TrackPublication } from 'livekit-client';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import Header from '../components/common/Header';
@@ -8,7 +9,6 @@ import MessageModal from '../components/MessageModal';
 import VideoGrid from '../components/video/VideoGrid';
 import api from '../lib/api/axios';
 import { useAuthStore } from '../store/authStore';
-import { Track, TrackPublication, Participant } from 'livekit-client';
 
 const StudyRoomPage = () => {
   const navigate = useNavigate();
@@ -18,90 +18,58 @@ const StudyRoomPage = () => {
   const { user, token: accessToken } = useAuthStore();
   const { roomId } = useParams<{ roomId: string }>();
   const numericRoomId = Number(roomId);
+  const requestedRef = useRef(false);
 
   // 사용자 인증 정보가 없거나 토큰이 없는 경우 경고
   useEffect(() => {
-    if (!user || !accessToken) {
-      console.warn('사용자 인증 정보 없음');
-      return;
-    }
+    if (!user || !accessToken || !roomId) return;
+    if (requestedRef.current) return;
+    requestedRef.current = true;
 
-    const fetchToken = async () => {
-      const generatedIdentity = user!.uid; // user는 위에서 체크했으므로 non-null 단언
-      setIdentity(generatedIdentity);
-
+    (async () => {
       try {
+        const generatedIdentity = user.uid;
+        setIdentity(generatedIdentity);
+
         const res = await api.post(
           '/api/livekit/token',
-          {
-            roomName: roomId,
-            identity: user.uid,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
+          { roomName: roomId, identity: generatedIdentity },
+          { headers: { Authorization: `Bearer ${accessToken}` } }
         );
-        setToken(res.data.token);
-    console.log('[🔑 토큰]', res.data.token);
 
+        setToken(res.data.token);
+        console.log('[🔑 토큰]', res.data.token);
       } catch (err) {
         console.error('토큰 생성 실패:', err);
       }
-    };
+    })();
+  }, [user, accessToken, roomId]);
 
-    fetchToken();
-    
-  }, [user, accessToken]);
 
 
   // 디버깅 용 나중에 삭제 예정
- const RoomLogger = () => {
-  const room = useRoomContext();
-
-  useEffect(() => {
-    console.log('[🧩 ROOM STATE]', room.state);
-
-    const handleConnected = () => {
-      console.log('✅ LiveKit 연결 성공');
-    };
-
-    const handleDisconnected = () => {
-      console.warn('❌ LiveKit 연결 종료됨');
-    };
-
-    const handleTrackSubscribed = (
-      track: Track,
-      publication: TrackPublication,
-      participant: Participant
-    ) => {
-      console.log(`🎥 ${participant.identity}의 ${track.kind} 트랙 구독됨`);
-    };
-
-    const handleTrackUnsubscribed = (
-      track: Track,
-      publication: TrackPublication,
-      participant: Participant
-    ) => {
-      console.log(`🛑 ${participant.identity}의 ${track.kind} 트랙 해제됨`);
-    };
-
-    room.on('connected', handleConnected);
-    room.on('disconnected', handleDisconnected);
-    room.on('trackSubscribed', handleTrackSubscribed);
-    room.on('trackUnsubscribed', handleTrackUnsubscribed);
-
-    return () => {
-      room.off('connected', handleConnected);
-      room.off('disconnected', handleDisconnected);
-      room.off('trackSubscribed', handleTrackSubscribed);
-      room.off('trackUnsubscribed', handleTrackUnsubscribed);
-    };
-  }, [room]);
-
-  return null;
-};
+  const RoomLogger = () => {
+    const room = useRoomContext();
+    useEffect(() => {
+      const onCon = () => console.log('LiveKit 연결 성공');
+      const onDis = () => console.warn('LiveKit 연결 종료됨');
+      const onSub = (t: Track, p: TrackPublication, u: Participant) =>
+        console.log(`${u.identity}의 ${t.kind} 구독됨`);
+      const onUnsub = (t: Track, p: TrackPublication, u: Participant) =>
+        console.log(`${u.identity}의 ${t.kind} 해제됨`);
+      room.on('connected', onCon);
+      room.on('disconnected', onDis);
+      room.on('trackSubscribed', onSub);
+      room.on('trackUnsubscribed', onUnsub);
+      return () => {
+        room.off('connected', onCon);
+        room.off('disconnected', onDis);
+        room.off('trackSubscribed', onSub);
+        room.off('trackUnsubscribed', onUnsub);
+      };
+    }, [room]);
+    return null;
+  };
 
 
   // 스터디룸 퇴장 처리
@@ -129,16 +97,17 @@ const StudyRoomPage = () => {
   };
 
   // 토큰 없으면 렌더링하지 않음
-  // if (!token) return <div>스터디룸 입장 중입니다...</div>;
+  if (!token) return <div>스터디룸 입장 중입니다...</div>;
 
 
   return (
     <LiveKitRoom
+      key={`${roomId}-${token.slice(0,12)}`}
       token={token}
-      serverUrl="wss://api.live-study.com/ws"
-      connect
+      serverUrl="wss://api.live-study.com" 
+      connect={!!token}                 
       video
-      audio={false} 
+      audio={false}
     >
       {/* 디버깅용 컴포넌트 */}
       <RoomLogger />
