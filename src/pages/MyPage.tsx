@@ -151,7 +151,7 @@ useEffect(() => {
   };
   
   fetchUserData();
-}, [user]);
+}, []);
 
 // 금일 집중시간 실시간 업데이트 (1분마다)
 useEffect(() => {
