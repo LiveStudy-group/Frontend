@@ -1,30 +1,51 @@
 import { useEffect, useRef, useState } from "react";
 import { FiMail, FiSend, FiX } from "react-icons/fi";
-import { useAuthStore } from "../store/authStore";
-import MessageItem from "./MessageItem";
+import useWebSocket from "../hooks/useWebSocket";
 import { sendMessageToServer } from "../lib/api/messageApi";
-import { setupMockSocketServer } from "../mocks/mockSocket";
-import type { MockMessageModalProps } from "../types/MockMessage";
+import { WEBSOCKET_CONFIG } from "../lib/constants/websocket";
+import { getMockSocketUrl, setupMockSocketServer } from "../mocks/mockSocket";
+import { useAuthStore } from "../store/authStore";
 import type { MessageItemProps } from "../types/Message";
+import type { MockMessageModalProps } from "../types/MockMessage";
+import MessageItem from "./MessageItem";
 
 function checkLocalBlocked(senderId: string): boolean {
   const blocked = JSON.parse(localStorage.getItem("blockedUsers") || "[]");
   return blocked.includes(senderId);
 }
 
-export default function MessageModal({ open, onClose, useMock = false }: MockMessageModalProps) {
+export default function MessageModal({ open, onClose, useMock = false, roomId = 1 }: MockMessageModalProps) {
+  // 🔄 [연동 가이드] StudyRoom과 연동 시:
+  // - StudyRoomPage에서 props로 받은 roomId를 그대로 전달
+  // - useMock은 개발환경에서는 true, 운영환경에서는 false로 설정
+  // 
+  // 예시:
+  // const { roomId } = useParams<{ roomId: string }>();
+  // <MessageModal roomId={Number(roomId)} useMock={false} ... />
   const [messages, setMessage] = useState<MessageItemProps[]>([]);
   const [input, setInput] = useState("");
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const userInfo = useAuthStore((state) => state.user);
 
+  // 실제 WebSocket 연결 (STOMP)
+  // 🔄 [연동 가이드] StudyRoom과 연동 시 실제 WebSocket 사용
+  const {
+    isConnected: realSocketConnected,
+    sendMessage: sendRealMessage,
+    messages: realMessages,
+  } = useWebSocket(WEBSOCKET_CONFIG, roomId.toString());
+
   useEffect(() => {
     if (!open || !useMock) return;
 
-    setupMockSocketServer();
+    // 🧪 [개발 전용] Mock Socket 설정 - 추후 실서비스에서는 사용되지 않음
+    // roomId별로 Mock 서버 설정
+    setupMockSocketServer(roomId);
 
-    const ws = new WebSocket("ws://localhost:1234");
+    const socketUrl = getMockSocketUrl(roomId);
+    const ws = new WebSocket(socketUrl);
+    
     ws.onmessage = (event) => {
       const data: MessageItemProps = JSON.parse(event.data);
       setMessage((prev) => [...prev, data]);
@@ -36,13 +57,13 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
       ws.close();
       setSocket(null);
     };
-  }, [open, useMock]);
+  }, [open, useMock, roomId]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const newMessage: MessageItemProps = {
-      studyroomId: 1,
+      studyroomId: roomId,
       senderId: userInfo?.uid ?? "",
       nickname: String(userInfo?.nickname),
       profileImage: userInfo?.profileImageUrl || "https://picsum.photos/200/300",
@@ -53,8 +74,18 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
 
     try {
       if (useMock && socket) {
+        // 🧪 [개발 전용] Mock Socket 사용
         socket.send(JSON.stringify(newMessage));
+      } else if (!useMock && realSocketConnected) {
+        // 🚀 [실서비스] 실제 WebSocket (STOMP) 사용 - StudyRoom 연동 시 주로 사용
+        sendRealMessage({
+          userId: userInfo?.uid ?? "",
+          roomId: roomId.toString(),
+          nickname: String(userInfo?.nickname),
+          message: input.trim()
+        });
       } else {
+        // 🔄 [Fallback] REST API 사용 - WebSocket 연결 실패 시 대안
         await sendMessageToServer(newMessage);
         setMessage((prev) => [...prev, newMessage]);
       }
@@ -93,7 +124,19 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
 
   if(!open) return null;
 
-  const displayedMessages = filterDuplicateBlockedMessages(messages);
+  // 🔄 [연동 가이드] Mock 또는 실제 WebSocket 메시지 선택
+  // StudyRoom 연동 시에는 useMock=false로 설정하여 realMessages 사용
+  const currentMessages = useMock ? messages : realMessages.map((wsMessage) => ({
+    senderId: wsMessage.payload.userId,
+    studyroomId: parseInt(wsMessage.payload.roomId),
+    nickname: wsMessage.payload.nickname,
+    profileImage: userInfo?.profileImageUrl || "https://picsum.photos/200/300",
+    message: wsMessage.payload.message,
+    timestamp: wsMessage.timeStamp,
+    isMyMessage: wsMessage.payload.userId === (userInfo?.uid ?? ""),
+  }));
+
+  const displayedMessages = filterDuplicateBlockedMessages(currentMessages);
 
   const displayedMessagesWithContinuous = displayedMessages.map((msg, idx, arr) => {
     const prevMsg = arr[idx - 1];
@@ -109,7 +152,12 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
       <div className="flex justify-between items-center p-4 border-b border-gray-300">
         <h2 className="flex items-center gap-2 text-body1_M">
           <FiMail className="m-1 text-base" />
-          <span>스터디룸 대화방</span>
+          <span>스터디룸 대화방 (Room {roomId})</span>
+          {useMock ? (
+            <span className="text-xs text-blue-500">Mock</span>
+          ) : (
+            <div className={`w-2 h-2 rounded-full ${realSocketConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+          )}
         </h2>
         <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100">
           <FiX />
@@ -125,7 +173,7 @@ export default function MessageModal({ open, onClose, useMock = false }: MockMes
             return (
               <MessageItem
                 key={`${msg.timestamp}-${msg.senderId}`}
-                studyroomId={1}
+                studyroomId={roomId}
                 senderId={msg.senderId}
                 nickname={msg.nickname}
                 profileImage={msg.profileImage}

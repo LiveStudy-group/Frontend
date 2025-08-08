@@ -17,22 +17,27 @@ import type {
   AverageFocusRatioApiResponse,
   ConnectionTestResult,
   DailyFocusApiResponse,
+  GrantTitleRequest,
+  GrantTitleResponse,
   LoginData,
   LoginResponse,
   LoginResult,
+  LoginUser,
   ProfileApiResponse,
   ProfileImageApiResponse,
   SignUpData,
   SignUpResult,
   StatsApiResponse,
   TitlesApiResponse,
+  TodayStudyTimeApiResponse,
   UpdateApiResponse,
   UpdateEmailRequest,
   UpdateNicknameRequest,
   UpdatePasswordRequest,
   UpdateProfileImageRequest,
   UpdateRepresentTitleResponse,
-  UserData
+  UserActivity,
+  UserStudyStat
 } from '../../types/auth';
 import api from './axios';
 
@@ -77,6 +82,8 @@ export function setAuthToken(token: string | null) {
 
 // 로그인 (실제 백엔드 연동)
 export async function login({ email, password } : LoginData): Promise<LoginResponse> {
+  console.log('🌐 login 함수 호출:', { email, password });
+  
   try {
     const response = await api.post<LoginResponse>('/api/auth/login', {
       email,
@@ -94,16 +101,45 @@ export async function login({ email, password } : LoginData): Promise<LoginRespo
   }
 }
 
-// 이메일 중복확인 (실제 백엔드 연동)
+// 이메일 중복확인 (추후 백엔드 API 구현 예정)
 export async function checkEmailDuplicate(email: string): Promise<{ isAvailable: boolean; message: string }> {
+  // TODO: 추후 백엔드 API 구현 시 아래와 같이 변경
+  // const response = await api.get(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+  // return response.data;
+  
+  // 현재는 임시로 클라이언트 측 검증 + MSW Mock 사용
+  
   try {
-    const response = await api.get(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
-    return { isAvailable: true, message: '사용 가능한 이메일입니다.' };
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 409) {
-      return { isAvailable: false, message: '이미 사용 중인 이메일입니다.' };
+    // 개발환경에서 MSW를 사용하는 경우 Mock API 호출
+    const useMock = import.meta.env.VITE_USE_MOCK === 'true';
+    
+    if (useMock) {
+      // MSW Mock API 호출
+      const response = await api.post('/api/auth/check-email', { email });
+      return response.data;
+    } else {
+      // 실제 백엔드 API가 없는 상황에서의 임시 처리
+      console.warn('⚠️ 이메일 중복확인 API가 아직 구현되지 않았습니다.');
+      
+      // 기본적인 클라이언트 측 검증
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { isAvailable: false, message: '올바른 이메일 형식이 아닙니다.' };
+      }
+      
+      // 임시로 항상 사용 가능으로 처리 (추후 실제 API 연동 필요)
+      return { 
+        isAvailable: true, 
+        message: '클라이언트 검증 통과 (서버 검증은 회원가입 시 수행됩니다.)' 
+      };
     }
-    throw error;
+  } catch (error) {
+    console.error('이메일 중복확인 오류:', error);
+    // 에러 발생 시 사용자가 회원가입을 시도할 수 있도록 허용
+    return { 
+      isAvailable: true, 
+      message: '중복확인 실패. 회원가입 시도 시 서버에서 재확인됩니다.' 
+    };
   }
 }
 
@@ -125,18 +161,7 @@ export async function signUp({ email, password, nickname, introduction, profileI
   }
 }
 
-// 스터디룸 입장
-export async function enterStudyRoom(userId: string): Promise<unknown> {
-  try {
-    const response = await api.post('/api/study-rooms/enter', null, {
-      params: { userId }
-    });
-    return response.data; // 방 ID 반환
-  } catch (error) {
-    handleAxiosError(error, '스터디룸 입장에 실패했습니다.');
-    throw error;
-  }
-}
+
 
 // ============================================
 // authStore 연동 함수들 (상태 관리와 API 연결)
@@ -146,6 +171,8 @@ export async function enterStudyRoom(userId: string): Promise<unknown> {
 export async function loginWithStore(email: string, password: string): Promise<LoginResult> {
   const { useAuthStore } = await import('../../store/authStore');
   
+  console.log('🔐 loginWithStore 호출:', { email, password });
+  
   try {
     const response = await login({ email, password });
     const token = response.token;
@@ -153,12 +180,13 @@ export async function loginWithStore(email: string, password: string): Promise<L
     // 실제 사용자 정보 조회
     try {
       const profileResult = await getUserProfile();
-      if (profileResult.success && profileResult.profile) {
-        const userData = {
-          uid: email.split('@')[0], // 임시 UID
-          email: profileResult.profile.email,
-          nickname: profileResult.profile.nickname,
-          profileImageUrl: profileResult.profile.profileImage || 'default.jpg',
+      if (profileResult.success && profileResult.data) {
+        // authStore에서 기대하는 타입으로 변환
+        const userData: LoginUser = {
+          uid: email.split('@')[0], // 임시 UID (기존 호환성)
+          email: profileResult.data.email,
+          nickname: profileResult.data.nickname,
+          profileImageUrl: profileResult.data.profileImage || 'default.jpg',
         };
 
         // authStore에 로그인 정보 저장
@@ -170,8 +198,8 @@ export async function loginWithStore(email: string, password: string): Promise<L
     }
 
     // 프로필 조회 실패 시 기본 정보 사용
-    const userData = {
-      uid: email.split('@')[0], // 임시 UID
+    const userData: LoginUser = {
+      uid: email.split('@')[0], // 임시 UID (기존 호환성)
       email,
       nickname: email.split('@')[0], // 임시 닉네임
       profileImageUrl: 'default.jpg',
@@ -234,8 +262,8 @@ export async function logoutWithStore(): Promise<{ success: boolean; message: st
 export const testConnection = async (): Promise<ConnectionTestResult> => {
   try {
     await api.post('/api/auth/login', {
-      email: "connection-test@test.com",
-      password: "test"
+      email: "testuser@example.com",
+      password: "test123456"
     });
     return { message: "서버 연결 성공 (인증 실패는 정상)", error: null };
   } catch (error: unknown) {
@@ -252,7 +280,7 @@ export const testConnection = async (): Promise<ConnectionTestResult> => {
 };
 
 // 로그인 테스트 (개발용) - 회원가입과 동일한 계정 사용
-export const testLoginDemo = async (): Promise<{ message: string; user?: UserData; token?: string }> => {
+export const testLoginDemo = async (): Promise<{ message: string; user?: LoginUser; token?: string }> => {
   // 먼저 회원가입된 계정이 있는지 확인하고, 없으면 고정 테스트 계정 사용
   const result = await loginWithStore("testuser@example.com", "test123456");
   
@@ -366,10 +394,10 @@ export async function updateProfileImage(imageUrl: string): Promise<ProfileImage
     const { useAuthStore } = await import('../../store/authStore');
     useAuthStore.getState().updateUser({ profileImageUrl: resultImageUrl });
     
-    return { success: true, imageUrl: resultImageUrl, message: '프로필 이미지가 변경되었습니다.' };
+    return { success: true, message: '프로필 이미지가 변경되었습니다.' };
   } catch (error: unknown) {
-    const errorMessage = handleAxiosError(error, '프로필 이미지 변경에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    handleAxiosError(error, '프로필 이미지 변경에 실패했습니다.');
+    throw error;
   }
 }
 
@@ -378,10 +406,10 @@ export async function getUserProfile(): Promise<ProfileApiResponse> {
   try {
     const response = await api.get('/api/user/profile');
     
-    return { success: true, profile: response.data, message: '프로필을 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
-    const errorMessage = handleAxiosError(error, '프로필 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    handleAxiosError(error, '프로필 조회에 실패했습니다.');
+    throw error;
   }
 }
 
@@ -390,10 +418,10 @@ export async function getUserStats(): Promise<StatsApiResponse> {
   try {
     const response = await api.get('/api/user/stat/normal');
     
-    return { success: true, stats: response.data, message: '통계를 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
-    const errorMessage = handleAxiosError(error, '통계 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    handleAxiosError(error, '통계 조회에 실패했습니다.');
+    throw error;
   }
 }
 
@@ -406,10 +434,10 @@ export async function getDailyFocus(startDate?: string, endDate?: string): Promi
     
     const response = await api.get(`/api/user/stat/daily-focus?${params.toString()}`);
     
-    return { success: true, dailyFocus: response.data, message: '일별 집중도를 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
-    const errorMessage = handleAxiosError(error, '일별 집중도 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    handleAxiosError(error, '일별 집중도 조회에 실패했습니다.');
+    throw error;
   }
 }
 
@@ -422,64 +450,109 @@ export async function getAverageFocusRatio(startDate?: string, endDate?: string)
     
     const response = await api.get(`/api/user/stat/average-focus-ratio?${params.toString()}`);
     
-    return { success: true, averageFocusRatio: response.data, message: '평균 집중률을 불러왔습니다.' };
+    return { success: true, data: response.data };
   } catch (error: unknown) {
-    const errorMessage = handleAxiosError(error, '평균 집중률 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    handleAxiosError(error, '평균 집중률 조회에 실패했습니다.');
+    throw error;
   }
 }
 
-// 칭호 목록 조회 (실제 백엔드 API에 맞춰 수정)
-export async function getUserTitles(): Promise<TitlesApiResponse> {
+// 칭호 목록 조회 (OpenAPI 실제 엔드포인트 사용)
+export async function getUserTitles(userId?: number): Promise<TitlesApiResponse> {
   try {
-    // 실제 백엔드에서는 사용자별 칭호 목록을 조회하는 API가 필요
-    // 현재 API 명세서에는 해당 API가 없으므로 임시로 기본 칭호 목록 반환
-    // TODO: 백엔드에서 사용자별 칭호 목록 조회 API 구현 필요
-    const defaultTitles = [
-      { key: 'no-title', name: '대표 칭호를 설정해주세요', description: '마이페이지에서 칭호를 지정해주세요', icon: '🙏', type: '기본', acquiredAt: '2024-01-01', isRepresent: false },
-      { key: 'first-login', name: '첫 입장', description: '처음 방에 입장했을 때 취득', icon: '🌱', type: '성취', acquiredAt: '2024-01-01', isRepresent: false },
-      { key: 'focus-beginner', name: 'Focus Beginner', description: '하루 30분 이상 집중 1회', icon: '🧘', type: '집중', acquiredAt: '2024-01-01', isRepresent: false }
-    ];
+    // 현재 로그인된 사용자의 ID를 가져오거나 매개변수로 받은 userId 사용
+    let targetUserId = userId;
+    if (!targetUserId) {
+      // 현재 로그인된 사용자 정보에서 userId 추출 (임시로 1 사용)
+      // TODO: 실제로는 authStore나 JWT 토큰에서 userId를 추출해야 함
+      targetUserId = 1;
+    }
     
-    return { success: true, titles: defaultTitles, message: '칭호 목록을 불러왔습니다.' };
+    const response = await api.get(`/api/titles/${targetUserId}/list`);
+    
+    return { success: true, data: response.data };
   } catch (error: unknown) {
-    const errorMessage = handleAxiosError(error, '칭호 목록 조회에 실패했습니다.');
-    return { success: false, message: errorMessage };
+    handleAxiosError(error, '칭호 목록 조회에 실패했습니다.');
+    return { success: false, data: [] };
   }
 }
 
-// 대표 칭호 변경 (실제 백엔드 API에 맞춰 수정)
-export async function updateRepresentTitle(titleKey: string): Promise<UpdateRepresentTitleResponse> {
+// 대표 칭호 변경 (OpenAPI 실제 엔드포인트 사용)
+export async function updateRepresentTitle(titleId: number, userId?: number): Promise<UpdateRepresentTitleResponse> {
   try {
-    // 실제 백엔드 API: /api/titles/{userId}/equip
-    // TODO: 백엔드에서 userId와 titleId를 어떻게 전달할지 확인 필요
-    // 현재는 임시로 성공 응답 반환
+    // 현재 로그인된 사용자의 ID를 가져오거나 매개변수로 받은 userId 사용
+    let targetUserId = userId;
+    if (!targetUserId) {
+      // 현재 로그인된 사용자 정보에서 userId 추출 (임시로 1 사용)
+      // TODO: 실제로는 authStore나 JWT 토큰에서 userId를 추출해야 함
+      targetUserId = 1;
+    }
     
-    // 선택된 칭호 정보 생성
-    const selectedTitle = {
-      key: titleKey,
-      name: titleKey === 'first-login' ? '첫 입장' : 
-            titleKey === 'focus-beginner' ? 'Focus Beginner' : 
-            '대표 칭호를 설정해주세요',
-      description: titleKey === 'first-login' ? '처음 방에 입장했을 때 취득' :
-                  titleKey === 'focus-beginner' ? '하루 30분 이상 집중 1회' :
-                  '마이페이지에서 칭호를 지정해주세요',
-      icon: titleKey === 'first-login' ? '🌱' : 
-            titleKey === 'focus-beginner' ? '🧘' : 
-            '🙏',
-      type: titleKey === 'no-title' ? '기본' : '성취',
-      acquiredAt: '2024-01-01',
-      isRepresent: true
-    };
+    // OpenAPI 문서 기준: POST /api/titles/{userId}/equip?titleId={titleId}
+    const response = await api.post(`/api/titles/${targetUserId}/equip?titleId=${titleId}`);
     
-    // authStore 업데이트
+    // authStore 업데이트 (응답 데이터로 업데이트)
     const { useAuthStore } = await import('../../store/authStore');
-    useAuthStore.getState().updateUser({ title: selectedTitle });
+    if (response.data) {
+      // OpenAPI 응답에서 받은 칭호 정보로 기존 호환성 유지를 위한 변환
+      const selectedTitle = {
+        key: `title-${response.data.titleId}`,
+        name: response.data.name,
+        description: response.data.description,
+        icon: '🏆', // 기본 아이콘
+        type: '성취',
+        acquiredAt: new Date().toISOString().split('T')[0],
+        isRepresent: true
+      };
+      useAuthStore.getState().updateUser({ title: selectedTitle });
+    }
     
-    return { success: true, title: selectedTitle, message: '대표 칭호가 변경되었습니다.' };
+    return { 
+      success: true, 
+      message: '대표 칭호가 변경되었습니다.',
+      data: response.data 
+    };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '대표 칭호 변경에 실패했습니다.');
     return { success: false, message: errorMessage };
+  }
+}
+
+// 칭호 지급 평가 및 지급 (OpenAPI 실제 엔드포인트 사용)
+export async function evaluateAndGrantTitles(
+  userId: string, 
+  activity: UserActivity, 
+  stat: UserStudyStat
+): Promise<{ success: boolean; data?: GrantTitleResponse; message: string }> {
+  try {
+    const requestData: GrantTitleRequest = {
+      userId,
+      activity,
+      stat
+    };
+    
+    const response = await api.post('/api/titles/evaluate', requestData);
+    
+    return { 
+      success: true, 
+      data: response.data,
+      message: '칭호 평가가 완료되었습니다.' 
+    };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '칭호 평가에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
+
+// 오늘 공부 시간 조회
+export async function getTodayStudyTime(): Promise<TodayStudyTimeApiResponse> {
+  try {
+    const response = await api.get('/api/user/stat/today-study-time');
+    
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    handleAxiosError(error, '오늘 공부 시간 조회에 실패했습니다.');
+    throw error;
   }
 }
 
@@ -589,6 +662,110 @@ export const testUpdateProfileImage = async (): Promise<{ message: string; detai
     const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
     return { 
       message: '🚨 프로필 이미지 변경 API 에러', 
+      details: errorMessage 
+    };
+  }
+};
+
+// ============================================
+// 새로운 API 테스트 함수들 (개발용)
+// ============================================
+
+// 프로필 조회 테스트
+export const testGetUserProfile = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const result = await getUserProfile();
+    
+    if (result.success && result.data) {
+      return { 
+        message: '✅ 프로필 조회 성공!', 
+        details: JSON.stringify(result.data, null, 2)
+      };
+    } else {
+      return { 
+        message: '❌ 프로필 조회 실패', 
+        details: '데이터가 없습니다.' 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 프로필 조회 API 에러', 
+      details: errorMessage 
+    };
+  }
+};
+
+// 칭호 목록 조회 테스트
+export const testGetUserTitles = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const result = await getUserTitles();
+    
+    if (result.success && result.data) {
+      return { 
+        message: '✅ 칭호 목록 조회 성공!', 
+        details: JSON.stringify(result.data, null, 2)
+      };
+    } else {
+      return { 
+        message: '❌ 칭호 목록 조회 실패', 
+        details: '데이터가 없습니다.' 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 칭호 목록 조회 API 에러', 
+      details: errorMessage 
+    };
+  }
+};
+
+// 대표 칭호 변경 테스트
+export const testUpdateRepresentTitle = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const result = await updateRepresentTitle(2); // titleId 2번으로 테스트
+    
+    if (result.success) {
+      return { 
+        message: '✅ 대표 칭호 변경 성공!', 
+        details: JSON.stringify(result, null, 2)
+      };
+    } else {
+      return { 
+        message: '❌ 대표 칭호 변경 실패', 
+        details: result.message 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 대표 칭호 변경 API 에러', 
+      details: errorMessage 
+    };
+  }
+};
+
+// 오늘 공부 시간 조회 테스트
+export const testGetTodayStudyTime = async (): Promise<{ message: string; details?: string }> => {
+  try {
+    const result = await getTodayStudyTime();
+    
+    if (result.success && result.data) {
+      return { 
+        message: '✅ 오늘 공부 시간 조회 성공!', 
+        details: JSON.stringify(result.data, null, 2)
+      };
+    } else {
+      return { 
+        message: '❌ 오늘 공부 시간 조회 실패', 
+        details: '데이터가 없습니다.' 
+      };
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { 
+      message: '🚨 오늘 공부 시간 조회 API 에러', 
       details: errorMessage 
     };
   }
