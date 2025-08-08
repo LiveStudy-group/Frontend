@@ -9,6 +9,7 @@ import MessageModal from '../components/MessageModal';
 import VideoGrid from '../components/video/VideoGrid';
 import api from '../lib/api/axios';
 import { useAuthStore } from '../store/authStore';
+import { parseJwt } from '../utils/jwt';
 
 const StudyRoomPage = () => {
   const navigate = useNavigate();
@@ -23,19 +24,24 @@ const StudyRoomPage = () => {
   useEffect(() => {
     if (!user || !accessToken) {
       console.warn('사용자 인증 정보 없음');
-      return;
+      // navigate('/login');
     }
+  }, [user, accessToken, navigate]);
+
+  // LiveKit 토큰 발급 및 로컬 검증
+  useEffect(() => {
+    if (!user || !accessToken || !roomId) return;
 
     const fetchToken = async () => {
-      const generatedIdentity = user!.uid; // user는 위에서 체크했으므로 non-null 단언
-      setIdentity(generatedIdentity);
-
       try {
+        const generatedIdentity = user.uid;
+        setIdentity(generatedIdentity);
+
         const res = await api.post(
           '/api/livekit/token',
           {
-            roomName: roomId,
-            identity: user.uid,
+            roomName: roomId,         
+            identity: generatedIdentity,
           },
           {
             headers: {
@@ -43,65 +49,62 @@ const StudyRoomPage = () => {
             },
           }
         );
-        setToken(res.data.token);
-    console.log('[🔑 토큰]', res.data.token);
 
+        const livekitToken = res.data?.token as string;
+        setToken(livekitToken);
+        console.log('[🔑 LiveKit 토큰]', livekitToken);
+
+        // 토큰 즉석 검증 로그 
+        try {
+          const { header, payload } = parseJwt(livekitToken);
+          console.log('[JWT header]', header);
+          console.log('[JWT payload]', payload);
+
+          const now = Math.floor(Date.now() / 1000);
+          console.log('[검증] iss', payload.iss === 'APITNAwd7xP7Tnt' ? 'OK' : 'NG', payload.iss);
+          console.log('[검증] exp', payload.exp, '>', now, payload.exp > now ? 'OK' : 'EXPIRED');
+          console.log('[검증] video.room === roomId', payload.video?.room, roomId, payload.video?.room === roomId ? 'OK' : 'MISMATCH');
+          console.log('[검증] sub(=identity)', payload.sub);
+
+
+          fetch(`https://api.live-study.com/rtc/validate?access_token=${livekitToken}`)
+            .then(r => console.log('[validate status]', r.status))
+            .catch(e => console.error('validate fetch error', e));
+        } catch (e) {
+          console.warn('[JWT 파싱 실패]', e);
+        }
+  
       } catch (err) {
         console.error('토큰 생성 실패:', err);
       }
     };
 
     fetchToken();
-    
-  }, [user, accessToken]);
-
+  }, [user, accessToken, roomId]);
 
   // 디버깅 용 나중에 삭제 예정
- const RoomLogger = () => {
-  const room = useRoomContext();
-
-  useEffect(() => {
-    console.log('[🧩 ROOM STATE]', room.state);
-
-    const handleConnected = () => {
-      console.log('✅ LiveKit 연결 성공');
-    };
-
-    const handleDisconnected = () => {
-      console.warn('❌ LiveKit 연결 종료됨');
-    };
-
-    const handleTrackSubscribed = (
-      track: Track,
-      publication: TrackPublication,
-      participant: Participant
-    ) => {
-      console.log(`🎥 ${participant.identity}의 ${track.kind} 트랙 구독됨`);
-    };
-
-    const handleTrackUnsubscribed = (
-      track: Track,
-      publication: TrackPublication,
-      participant: Participant
-    ) => {
-      console.log(`🛑 ${participant.identity}의 ${track.kind} 트랙 해제됨`);
-    };
-
-    room.on('connected', handleConnected);
-    room.on('disconnected', handleDisconnected);
-    room.on('trackSubscribed', handleTrackSubscribed);
-    room.on('trackUnsubscribed', handleTrackUnsubscribed);
-
-    return () => {
-      room.off('connected', handleConnected);
-      room.off('disconnected', handleDisconnected);
-      room.off('trackSubscribed', handleTrackSubscribed);
-      room.off('trackUnsubscribed', handleTrackUnsubscribed);
-    };
-  }, [room]);
-
-  return null;
-};
+  const RoomLogger = () => {
+    const room = useRoomContext();
+    useEffect(() => {
+      const onCon = () => console.log('LiveKit 연결 성공');
+      const onDis = () => console.warn('LiveKit 연결 종료됨');
+      const onSub = (t: Track, p: TrackPublication, u: Participant) =>
+        console.log(`${u.identity}의 ${t.kind} 구독됨`);
+      const onUnsub = (t: Track, p: TrackPublication, u: Participant) =>
+        console.log(`${u.identity}의 ${t.kind} 해제됨`);
+      room.on('connected', onCon);
+      room.on('disconnected', onDis);
+      room.on('trackSubscribed', onSub);
+      room.on('trackUnsubscribed', onUnsub);
+      return () => {
+        room.off('connected', onCon);
+        room.off('disconnected', onDis);
+        room.off('trackSubscribed', onSub);
+        room.off('trackUnsubscribed', onUnsub);
+      };
+    }, [room]);
+    return null;
+  };
 
 
   // 스터디룸 퇴장 처리
@@ -129,16 +132,17 @@ const StudyRoomPage = () => {
   };
 
   // 토큰 없으면 렌더링하지 않음
-  // if (!token) return <div>스터디룸 입장 중입니다...</div>;
+  if (!token) return <div>스터디룸 입장 중입니다...</div>;
 
 
   return (
     <LiveKitRoom
+      key={`${roomId}-${token.slice(0,12)}`}
       token={token}
-      serverUrl="wss://api.live-study.com/ws"
-      connect
+      serverUrl="wss://api.live-study.com" 
+      connect={!!token}                 
       video
-      audio={false} 
+      audio={false}
     >
       {/* 디버깅용 컴포넌트 */}
       <RoomLogger />
