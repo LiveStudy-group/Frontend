@@ -98,20 +98,7 @@ export interface TodayStudyTimeResponse {
   todayStudyTime: number;
 }
 
-// 일별 기록 응답 타입
-export interface DailyRecordResponse {
-  recordDate: string;
-  dailyStudyTime: number;
-  dailyAwayTime: number;
-  focusRatio: number;
-}
 
-// 평균 집중률 응답 타입
-export interface AverageFocusRatioResponse {
-  startDate: string;
-  endDate: string;
-  averageFocusRatio: number;
-}
 
 // 마이페이지 수정 요청 타입
 export interface UpdateNicknameRequest {
@@ -154,17 +141,7 @@ export interface TodayStudyTimeApiResponse {
   data: TodayStudyTimeResponse;
 }
 
-// 일별 집중도 API 응답 타입
-export interface DailyFocusApiResponse {
-  success: boolean;
-  data: DailyRecordResponse[];
-}
 
-// 평균 집중률 API 응답 타입
-export interface AverageFocusRatioApiResponse {
-  success: boolean;
-  data: AverageFocusRatioResponse;
-}
 
 // 수정 API 응답 타입
 export interface UpdateApiResponse {

@@ -98,7 +98,14 @@ const Header = () => {
             </div>
           )}
           <div className="relative z-50" ref={menuRef}>
-            { isLoggedIn && <div onClick={toggleMenu} className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer" />}
+            { isLoggedIn && (
+              <img 
+                onClick={toggleMenu} 
+                src={user?.profileImageUrl || "/img/my-page-profile-image-1.jpg"} 
+                alt={`${user?.nickname}님의 프로필`}
+                className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer object-cover"
+              />
+            )}
             { menuOpen && (
               <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-md text-sm z-10">
                 <ul className="divide-y divide-gray-200">

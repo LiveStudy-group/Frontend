@@ -398,57 +398,7 @@ export const handlers = [
     );
   }),
 
-  // 일별 집중도 추이 조회 API
-  rest.get('/api/user/stat/daily-focus', (req, res, ctx) => {
-    const url = new URL(req.url.toString());
-    const startDate = url.searchParams.get('startDate') || '2025-08-01';
-    const endDate = url.searchParams.get('endDate') || '2025-08-03';
 
-    // startDate와 endDate를 활용한 데이터 생성 (현재는 고정값 반환)
-    console.log(`집중도 조회 기간: ${startDate} ~ ${endDate}`);
-
-    return res(
-      ctx.status(200),
-      ctx.json([
-        {
-          recordDate: '2025-08-01',
-          dailyStudyTime: 3600,
-          dailyAwayTime: 300,
-          focusRatio: 0.92
-        },
-        {
-          recordDate: '2025-08-02',
-          dailyStudyTime: 4200,
-          dailyAwayTime: 600,
-          focusRatio: 0.87
-        },
-        {
-          recordDate: '2025-08-03',
-          dailyStudyTime: 3000,
-          dailyAwayTime: 900,
-          focusRatio: 0.77
-        }
-      ])
-    );
-  }),
-
-  // 평균 집중률 조회 API
-  rest.get('/api/user/stat/average-focus-ratio', (req, res, ctx) => {
-    const url = new URL(req.url.toString());
-    const startDate = url.searchParams.get('startDate') || '2025-08-01';
-    const endDate = url.searchParams.get('endDate') || '2025-08-07';
-
-    console.log(`평균 집중률 조회 기간: ${startDate} ~ ${endDate}`);
-
-    return res(
-      ctx.status(200),
-      ctx.json({
-        startDate,
-        endDate,
-        averageFocusRatio: 0.85
-      })
-    );
-  }),
 
   // 칭호 목록 조회 API (새로운 형식)
   rest.get('/api/titles/:userId/list', (req, res, ctx) => {

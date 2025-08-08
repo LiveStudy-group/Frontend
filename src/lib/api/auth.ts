@@ -14,9 +14,7 @@
 
 import axios from 'axios';
 import type {
-  AverageFocusRatioApiResponse,
   ConnectionTestResult,
-  DailyFocusApiResponse,
   GrantTitleRequest,
   GrantTitleResponse,
   LoginData,
@@ -425,37 +423,7 @@ export async function getUserStats(): Promise<StatsApiResponse> {
   }
 }
 
-// 일별 집중도 추이 조회
-export async function getDailyFocus(startDate?: string, endDate?: string): Promise<DailyFocusApiResponse> {
-  try {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    
-    const response = await api.get(`/api/user/stat/daily-focus?${params.toString()}`);
-    
-    return { success: true, data: response.data };
-  } catch (error: unknown) {
-    handleAxiosError(error, '일별 집중도 조회에 실패했습니다.');
-    throw error;
-  }
-}
 
-// 평균 집중률 조회
-export async function getAverageFocusRatio(startDate?: string, endDate?: string): Promise<AverageFocusRatioApiResponse> {
-  try {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    
-    const response = await api.get(`/api/user/stat/average-focus-ratio?${params.toString()}`);
-    
-    return { success: true, data: response.data };
-  } catch (error: unknown) {
-    handleAxiosError(error, '평균 집중률 조회에 실패했습니다.');
-    throw error;
-  }
-}
 
 // 칭호 목록 조회 (OpenAPI 실제 엔드포인트 사용)
 export async function getUserTitles(userId?: number): Promise<TitlesApiResponse> {
