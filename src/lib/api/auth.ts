@@ -738,3 +738,30 @@ export const testGetTodayStudyTime = async (): Promise<{ message: string; detail
     };
   }
 };
+
+// ============================================
+// 새로운 API 함수들 (마이페이지 관련만)
+// ============================================
+
+// 프로필 이미지 업로드 (마이페이지용)
+export async function uploadProfileImage(imageFile: File): Promise<{ success: boolean; message: string; imageUrl?: string }> {
+  try {
+    const formData = new FormData();
+    formData.append('imageFile', imageFile);
+    
+    const response = await api.post('/api/images/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return { 
+      success: true, 
+      message: '프로필 이미지가 업로드되었습니다.',
+      imageUrl: response.data
+    };
+  } catch (error: unknown) {
+    const errorMessage = handleAxiosError(error, '이미지 업로드에 실패했습니다.');
+    return { success: false, message: errorMessage };
+  }
+}
