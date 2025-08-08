@@ -4,15 +4,20 @@
 // import MessageButton from "../components/MessageButton";
 // import MessageModal from "../components/MessageModal";
 import { useEffect, useState } from "react";
-import { 
-  testConnection, 
-  testLoginDemo as testLogin, 
+import {
+  checkEmailDuplicate,
+  testConnection,
+  testGetTodayStudyTime,
+  testGetUserProfile,
+  testGetUserTitles,
+  testLoginDemo as testLogin,
   testSignupDemo as testSignup,
-  testUpdateNickname,
   testUpdateEmail,
+  testUpdateNickname,
   testUpdatePassword,
-  testUpdateProfileImage
-} from "../lib/api/auth";
+  testUpdateProfileImage,
+  testUpdateRepresentTitle
+} from "../../lib/api/auth";
 
 // 테스트 결과 타입 정의
 interface TestResult {
@@ -25,10 +30,15 @@ interface TestResults {
   connection?: TestResult;
   login?: TestResult;
   signup?: TestResult;
+  checkEmailDuplicate?: TestResult;
   updateNickname?: TestResult;
   updateEmail?: TestResult;
   updatePassword?: TestResult;
   updateProfileImage?: TestResult;
+  getUserProfile?: TestResult;
+  getUserTitles?: TestResult;
+  updateRepresentTitle?: TestResult;
+  getTodayStudyTime?: TestResult;
 }
 
 export default function TestPage() {
@@ -76,6 +86,38 @@ export default function TestPage() {
       console.error("❌ 회원가입 API 실패:", error);
       const errorMessage = error instanceof Error ? error.message : '회원가입 테스트 중 오류가 발생했습니다.';
       setTestResults((prev: TestResults) => ({ ...prev, signup: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
+  // 3-1. 이메일 중복확인 API 테스트
+  const handleEmailDuplicateTest = async () => {
+    setLoading(true);
+    try {
+      // 사용 가능한 이메일과 중복된 이메일 둘 다 테스트
+      const testEmail1 = 'newuser@example.com';
+      const testEmail2 = 'existing@example.com';
+      
+      const result1 = await checkEmailDuplicate(testEmail1);
+      const result2 = await checkEmailDuplicate(testEmail2);
+      
+      const testResult = {
+        available_email: { email: testEmail1, result: result1 },
+        duplicate_email: { email: testEmail2, result: result2 }
+      };
+      
+      console.log("✅ 이메일 중복확인 API 성공:", testResult);
+      setTestResults((prev: TestResults) => ({ 
+        ...prev, 
+        checkEmailDuplicate: { success: true, data: testResult } 
+      }));
+    } catch (error: unknown) {
+      console.error("❌ 이메일 중복확인 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '이메일 중복확인 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ 
+        ...prev, 
+        checkEmailDuplicate: { success: false, error: errorMessage } 
+      }));
     }
     setLoading(false);
   };
@@ -140,6 +182,66 @@ export default function TestPage() {
     setLoading(false);
   };
   
+  // 8. 프로필 조회 API 테스트
+  const handleProfileTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testGetUserProfile();
+      console.log("✅ 프로필 조회 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, getUserProfile: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 프로필 조회 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '프로필 조회 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, getUserProfile: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
+  // 9. 칭호 목록 조회 API 테스트
+  const handleTitlesTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testGetUserTitles();
+      console.log("✅ 칭호 목록 조회 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, getUserTitles: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 칭호 목록 조회 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '칭호 목록 조회 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, getUserTitles: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
+  // 10. 대표 칭호 변경 API 테스트
+  const handleRepresentTitleTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testUpdateRepresentTitle();
+      console.log("✅ 대표 칭호 변경 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, updateRepresentTitle: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 대표 칭호 변경 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '대표 칭호 변경 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, updateRepresentTitle: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
+  // 11. 오늘 공부 시간 조회 API 테스트
+  const handleTodayStudyTimeTest = async () => {
+    setLoading(true);
+    try {
+      const result = await testGetTodayStudyTime();
+      console.log("✅ 오늘 공부 시간 조회 API 성공:", result);
+      setTestResults((prev: TestResults) => ({ ...prev, getTodayStudyTime: { success: true, data: result } }));
+    } catch (error: unknown) {
+      console.error("❌ 오늘 공부 시간 조회 API 실패:", error);
+      const errorMessage = error instanceof Error ? error.message : '오늘 공부 시간 조회 테스트 중 오류가 발생했습니다.';
+      setTestResults((prev: TestResults) => ({ ...prev, getTodayStudyTime: { success: false, error: errorMessage } }));
+    }
+    setLoading(false);
+  };
+
   // 자동으로 기본 연결 테스트 실행
   useEffect(() => {
     handleConnectionTest();
@@ -159,7 +261,7 @@ export default function TestPage() {
         {/* 기본 인증 API 테스트 */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">🔐 기본 인증 API</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button 
               onClick={handleConnectionTest}
               disabled={loading}
@@ -182,6 +284,14 @@ export default function TestPage() {
               className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
             >
               {loading ? '확인 중...' : '3️⃣ 회원가입 API 확인'}
+            </button>
+
+            <button 
+              onClick={handleEmailDuplicateTest}
+              disabled={loading}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '📧 이메일 중복확인'}
             </button>
           </div>
         </div>
@@ -220,6 +330,44 @@ export default function TestPage() {
               className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
             >
               {loading ? '확인 중...' : '🖼️ 프로필 이미지'}
+            </button>
+          </div>
+        </div>
+
+        {/* 새로운 API 테스트 */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">📊 최신 API 테스트</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button 
+              onClick={handleProfileTest}
+              disabled={loading}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '👤 프로필 조회'}
+            </button>
+            
+            <button 
+              onClick={handleTitlesTest}
+              disabled={loading}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '🏆 칭호 목록'}
+            </button>
+            
+            <button 
+              onClick={handleRepresentTitleTest}
+              disabled={loading}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '🎖️ 칭호 변경'}
+            </button>
+            
+            <button 
+              onClick={handleTodayStudyTimeTest}
+              disabled={loading}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg disabled:opacity-50"
+            >
+              {loading ? '확인 중...' : '⏰ 오늘 집중'}
             </button>
           </div>
         </div>

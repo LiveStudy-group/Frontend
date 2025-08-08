@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { rest } from 'msw';
 
 // 칭호 전체 목록
@@ -133,27 +132,54 @@ const allTitles = [
   },
 ];
 
-export const checkDuplicateEmail = async (email: string) => {
-  const res = await axios.post('/api/auth/check-email', {email});
-  return res.data;
-}
+// 이메일 중복확인 함수 제거 (OpenAPI 문서에 없는 엔드포인트)
+// OpenAPI 문서에 따르면 회원가입 시 409 에러로 중복 체크가 이루어짐
 
 export const handlers = [
-  rest.post('/api/auth/signup', async (req, res, ctx) => {
-    const { email, password, repassword, nickname } = await req.json()
+  // 이메일 중복확인 API (개발용 Mock)
+  rest.post('/api/auth/check-email', async (req, res, ctx) => {
+    const { email } = await req.json();
 
-    // 간단한 유효성 검사 (프론트용 Mock이라 가볍게 처리)
-    if (!email || !password || !repassword || !nickname) {
+    console.log('🔍 MSW 이메일 중복확인:', email);
+
+    // 간단한 유효성 검사
+    if (!email) {
       return res(
         ctx.status(400),
-        ctx.json({ message: '모든 값을 입력해주세요.' })
-      )
+        ctx.json({ message: '이메일을 입력해주세요.' })
+      );
     }
 
-    if (password !== repassword) {
+    // 테스트용 이미 사용 중인 이메일 목록
+    const existingEmails = ['existing@example.com', 'test@example.com'];
+    
+    if (existingEmails.includes(email)) {
+      return res(
+        ctx.status(409),
+        ctx.json({ 
+          isAvailable: false, 
+          message: '이미 사용 중인 이메일입니다.' 
+        })
+      );
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({ 
+        isAvailable: true, 
+        message: '사용 가능한 이메일입니다.' 
+      })
+    );
+  }),
+
+  rest.post('/api/auth/signup', async (req, res, ctx) => {
+    const { email, password, nickname } = await req.json()
+
+    // 간단한 유효성 검사
+    if (!email || !password || !nickname) {
       return res(
         ctx.status(400),
-        ctx.json({ message: '비밀번호가 일치하지 않습니다.' })
+        ctx.json({ message: '필수 정보를 모두 입력해주세요.' })
       )
     }
 
@@ -166,93 +192,28 @@ export const handlers = [
 
     return res(
       ctx.status(201),
-      ctx.json({ message: '회원가입 성공!' })
+      ctx.json({ message: '회원가입이 완료되었습니다.' })
     )
   }),
 
   rest.post('/api/auth/login', async (req, res, ctx) => {
     const { email, password } = await req.json();
+    
+    console.log('🔍 MSW 로그인 요청:', { email, password });
 
-    const currentTitle = allTitles.find((t) => t.isRepresent) ?? allTitles[0];
-
-    // 테스트용 계정 1
-    if(email === 'test1@example.com' && password === '1234') {
-      return res(
-        ctx.status(200),
-        ctx.json({
-          message: '로그인 성공',
-          user: {
-            uid: 'test-uid-1234',
-            email,
-            nickname: '테스트 유저',
-            title: currentTitle?.key ? currentTitle : {
-              id: 0,
-              key: 'no-title',
-              name: '현재 보유한 칭호가 없어요.',
-              description: '마이페이지에서 칭호를 지정해주세요.',
-              icon: '❔',
-            },
-            token: 'fake-jwt-token-1'
-          }
-        })
-      );
-    }
-
-    // 테스트용 계정 2
-    if(email === 'test2@example.com' && password === '1234') {
-      return res(
-        ctx.status(200),
-        ctx.json({
-          message: '로그인 성공',
-          user: {
-            uid: 'test-uid-5678',
-            email,
-            nickname: '서브 유저',
-            title: currentTitle?.key ? currentTitle : {
-              id: 0,
-              key: 'no-title',
-              name: '현재 보유한 칭호가 없어요.',
-              description: '마이페이지에서 칭호를 지정해주세요.',
-              icon: '❔',
-            },
-            token: 'fake-jwt-token-2'
-          }
-        })
-      );
-    }
-
-    // 회원가입한 계정으로도 로그인 가능하도록 허용
-    // 실제로는 회원가입 시 저장된 계정 정보를 확인해야 함
-    if(email && password && password.length >= 6) {
-      return res(
-        ctx.status(200),
-        ctx.json({
-          message: '로그인 성공',
-          user: {
-            uid: `user-${Date.now()}`,
-            email,
-            nickname: email.split('@')[0],
-            title: currentTitle?.key ? currentTitle : {
-              id: 0,
-              key: 'no-title',
-              name: '현재 보유한 칭호가 없어요.',
-              description: '마이페이지에서 칭호를 지정해주세요.',
-              icon: '❔',
-            },
-            token: `fake-jwt-token-${Date.now()}`
-          }
-        })
-      );
-    }
-
+    // 모든 요청에 대해 성공 응답 (테스트용)
+    console.log('✅ MSW: 모든 로그인 요청 성공');
     return res(
-      ctx.status(401),
-      ctx.json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.'})
-    )
+      ctx.status(201),
+      ctx.json({
+        token: 'fake-jwt-token-test'
+      })
+    );
+
   }),
   
   // 프로필 이미지(default Image)
-  rest.post('/api/user/profile/change/profileImageUrl', async (req, res, ctx) => {
+  rest.post('/api/user/profile/change/profileImageUrl', async (_req, res, ctx) => {
     return res(
       ctx.status(200),
       ctx.json({
@@ -361,7 +322,7 @@ export const handlers = [
   }),
 
   // 칭호 목록 조회
-  rest.get('/api/user/titles', (req, res, ctx) => {
+  rest.get('/api/user/titles', (_req, res, ctx) => {
     return res(
       ctx.status(200),
       ctx.json({
@@ -387,38 +348,122 @@ export const handlers = [
     );
   }),
   
-  // 공개방 입장 핸들러
-  rest.post('/api/study-room/enter', async (req, res, ctx) => {
-    const { userId, roomId } = await req.json();
 
-    if (!userId || !roomId) {
+
+
+
+  // ============================================
+  // 새로운 API Handlers (OpenAPI 최신 문서 기준)
+  // ============================================
+
+  // 프로필 조회 API
+  rest.get('/api/user/profile', (_req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        profileImage: 'https://picsum.photos/100/100?random=1',
+        nickname: '테스트유저',
+        email: 'test@example.com',
+        selectedTitle: 'NIGHT_OWL',
+        totalStudyTime: 7200, // 2시간
+        totalAttendanceDays: 15,
+        continueAttendanceDays: 5
+      })
+    );
+  }),
+
+  // 통계 조회 API
+  rest.get('/api/user/stat/normal', (_req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        userId: 1,
+        nickname: '테스트유저',
+        totalStudyTime: 7200, // 2시간
+        totalAwayTime: 1800, // 30분
+        totalAttendanceDays: 15,
+        continueAttendanceDays: 5,
+        lastAttendanceDate: '2025-08-07'
+      })
+    );
+  }),
+
+  // 오늘 공부 시간 조회 API
+  rest.get('/api/user/stat/today-study-time', (_req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        todayStudyTime: 3600 // 1시간
+      })
+    );
+  }),
+
+
+
+  // 칭호 목록 조회 API (새로운 형식)
+  rest.get('/api/titles/:userId/list', (req, res, ctx) => {
+    const { userId } = req.params;
+    
+    console.log(`사용자 ${userId}의 칭호 목록 조회`);
+    
+    return res(
+      ctx.status(200),
+      ctx.json([
+        {
+          titleId: 1,
+          name: '첫 입장',
+          description: '처음 방에 입장했을 때 취득',
+          representative: false,
+          isRepresentative: false
+        },
+        {
+          titleId: 2,
+          name: 'Focus Beginner',
+          description: '하루 30분 이상 집중 1회',
+          representative: false,
+          isRepresentative: false
+        },
+        {
+          titleId: 3,
+          name: '야행성',
+          description: '밤 10시 이후 30회 이상 접속',
+          representative: true,
+          isRepresentative: true
+        }
+      ])
+    );
+  }),
+
+  // 대표 칭호 설정 API
+  rest.post('/api/titles/:userId/equip', (req, res, ctx) => {
+    const { userId } = req.params;
+    const url = new URL(req.url.toString());
+    const titleId = url.searchParams.get('titleId');
+
+    console.log(`사용자 ${userId}가 칭호 ${titleId}를 대표 칭호로 설정`);
+
+    if (!titleId) {
       return res(
         ctx.status(400),
-        ctx.json({ message: 'userId 또는 roomId가 누락되었습니다.' })
-      );
-    }
-
-    if (userId === 'alreadyInRoomUser') {
-      return res(
-        ctx.status(409),
-        ctx.json({ message: '이미 해당 방에 입장 중입니다.' })
+        ctx.json({ message: 'titleId가 필요합니다.' })
       );
     }
 
     return res(
       ctx.status(200),
       ctx.json({
-        status: 200,
-        roomId,
-        message: '공개방 입장 성공',
+        titleId: parseInt(titleId),
+        name: '야행성',
+        description: '밤 10시 이후 30회 이상 접속',
+        representative: true,
+        isRepresentative: true
       })
     );
   }),
 
-  // 스터디룸 퇴장 핸들러
-  rest.post('/api/study-rooms/leave', async (req, res, ctx) => {
-    const url = new URL(req.url.toString());
-    const userId = url.searchParams.get('userId');
+  // 칭호 지급 평가 API
+  rest.post('/api/titles/evaluate', async (req, res, ctx) => {
+    const { userId, activity, stat } = await req.json();
 
     if (!userId) {
       return res(
@@ -427,9 +472,55 @@ export const handlers = [
       );
     }
 
+    // 간단한 칭호 지급 로직 시뮬레이션
+    const grantedTitles = [];
+    
+    // 첫 입장 칭호
+    if (activity?.enteredFirstRoom) {
+      grantedTitles.push('첫 입장');
+    }
+
+    // 야행성 칭호
+    if (activity?.lastLoginTime?.hour >= 22) {
+      grantedTitles.push('야행성');
+    }
+
+    // Focus Beginner 칭호
+    if (stat?.totalStudyTime >= 1800) { // 30분 이상
+      grantedTitles.push('Focus Beginner');
+    }
+
     return res(
       ctx.status(200),
-      ctx.json({ message: '퇴장 성공' })
+      ctx.json({
+        grantedTitleNames: grantedTitles
+      })
+    );
+  }),
+
+  // ============================================
+  // 누락된 API 핸들러들 추가 (콘솔 에러 해결용)
+  // ============================================
+
+  // 모든 처리되지 않은 요청에 대한 폴백 핸들러 (조용하게 처리)
+  rest.all('*', (req, res, ctx) => {
+    // 콘솔 스팸을 줄이기 위해 특정 요청만 로깅
+    const shouldLog = !req.url.pathname.includes('/api/user/stat/') && 
+                     !req.url.pathname.includes('/api/titles/') &&
+                     !req.url.pathname.includes('/api/user/profile');
+    
+    if (shouldLog) {
+      console.log(`📝 MSW: ${req.method} ${req.url.pathname} (폴백 처리)`);
+    }
+    
+    // 200 응답으로 조용히 처리
+    return res(
+      ctx.status(200),
+      ctx.json({ 
+        message: "Mock 응답",
+        success: true,
+        data: {}
+      })
     );
   }),
 

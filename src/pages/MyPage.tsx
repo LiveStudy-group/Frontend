@@ -3,6 +3,7 @@ import { FiChevronDown } from "react-icons/fi";
 import Footer from "../components/common/Footer";
 import Header from "../components/common/Header";
 import {
+  getTodayStudyTime,
   getUserProfile,
   getUserStats,
   getUserTitles,
@@ -19,6 +20,9 @@ export default function MyPage() {
   const [titles, setTitles] = useState<{ name: string; key: string; type: string; description: string; acquiredAt: string; icon: string; isRepresent: boolean }[]>([]);
   const [selectedTitle, setSelectedTitle] = useState("");
   const [userStats, setUserStats] = useState<any>(null);
+  const [todayStudyTime, setTodayStudyTime] = useState<string>("00:00:00");
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingTodayTime, setIsLoadingTodayTime] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [profileImage, setProfileImage] = useState(user?.profileImageUrl || "/img/my-page-profile-image-1.jpg");
   const [nickname, setNickname] = useState(user?.nickname || "");
@@ -35,14 +39,14 @@ useEffect(() => {
     try {
       // 프로필 정보 조회
       const profileResult = await getUserProfile();
-      if (profileResult.success && profileResult.profile) {
-        const profile = profileResult.profile;
+      if (profileResult.success && profileResult.data) {
+        const profile = profileResult.data;
         setProfileImage(profile.profileImage || "/img/my-page-profile-image-1.jpg");
         setNickname(profile.nickname || "");
         setEmail(profile.email || "");
         setSelectedTitle(profile.selectedTitle || "");
       } else {
-        console.warn("프로필 정보 조회 실패:", profileResult.message);
+        console.warn("프로필 정보 조회 실패");
         // authStore에서 기본 정보 사용
         if (user) {
           setProfileImage(user.profileImageUrl || "/img/my-page-profile-image-1.jpg");
@@ -52,25 +56,70 @@ useEffect(() => {
       }
       
       // 통계 정보 조회
-      const statsResult = await getUserStats();
-      if (statsResult.success && statsResult.stats) {
-        setUserStats(statsResult.stats);
-      } else {
-        console.warn("통계 정보 조회 실패:", statsResult.message);
-        // 기본 통계 데이터 설정
+      try {
+        setIsLoadingStats(true);
+        const statsResult = await getUserStats();
+        if (statsResult.success && statsResult.data) {
+          setUserStats(statsResult.data);
+        } else {
+          console.warn("통계 정보 조회 실패");
+          // 기본 통계 데이터 설정
+          setUserStats({
+            totalStudyTime: 0,
+            totalAttendanceDays: 0,
+            continueAttendanceDays: 0
+          });
+        }
+      } catch (error) {
+        console.error('통계 정보 조회 에러:', error);
         setUserStats({
           totalStudyTime: 0,
           totalAttendanceDays: 0,
           continueAttendanceDays: 0
         });
+      } finally {
+        setIsLoadingStats(false);
+      }
+
+      // 금일 집중시간 조회
+      try {
+        setIsLoadingTodayTime(true);
+        const todayResult = await getTodayStudyTime();
+        if (todayResult.success && todayResult.data) {
+          const seconds = todayResult.data.todayStudyTime;
+          const hours = Math.floor(seconds / 3600);
+          const minutes = Math.floor((seconds % 3600) / 60);
+          const remainingSeconds = seconds % 60;
+          setTodayStudyTime(
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+          );
+        } else {
+          console.warn("금일 집중시간 조회 실패");
+          setTodayStudyTime("00:00:00");
+        }
+      } catch (error) {
+        console.error('금일 집중시간 조회 실패:', error);
+        setTodayStudyTime("00:00:00");
+      } finally {
+        setIsLoadingTodayTime(false);
       }
 
       // 칭호 목록 조회
       const titlesResult = await getUserTitles();
-      if (titlesResult.success && titlesResult.titles) {
-        setTitles(titlesResult.titles);
+      if (titlesResult.success && titlesResult.data) {
+        // UserTitleResponse를 기존 Title 형식으로 변환
+        const convertedTitles = titlesResult.data.map(title => ({
+          name: title.name,
+          key: title.titleId.toString(),
+          type: "성취",
+          description: title.description,
+          acquiredAt: "2024-01-01",
+          icon: "🏆",
+          isRepresent: title.isRepresentative
+        }));
+        setTitles(convertedTitles);
       } else {
-        console.warn("칭호 목록 조회 실패:", titlesResult.message);
+        console.warn("칭호 목록 조회 실패");
         // 기본 칭호 데이터 설정
         setTitles([
           { name: "신입생", key: "newbie", type: "기본", description: "첫 시작", acquiredAt: "2024-01-01", icon: "🎓", isRepresent: false },
@@ -100,6 +149,31 @@ useEffect(() => {
   fetchUserData();
 }, [user]);
 
+// 금일 집중시간 실시간 업데이트 (1분마다)
+useEffect(() => {
+  const updateTodayStudyTime = async () => {
+    try {
+      const todayResult = await getTodayStudyTime();
+      if (todayResult.success && todayResult.data) {
+        const seconds = todayResult.data.todayStudyTime;
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+        setTodayStudyTime(
+          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+        );
+      }
+    } catch (error) {
+      console.error('금일 집중시간 업데이트 실패:', error);
+    }
+  };
+
+  // 1분마다 업데이트
+  const interval = setInterval(updateTodayStudyTime, 60000);
+  
+  return () => clearInterval(interval);
+}, []);
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -112,8 +186,8 @@ useEffect(() => {
         const imageUrl = event.target?.result as string;
         const result = await updateProfileImage(imageUrl);
         
-        if (result.success && result.imageUrl) {
-          setProfileImage(result.imageUrl);
+        if (result.success) {
+          setProfileImage(imageUrl);
           alert(result.message);
         } else {
           alert(result.message);
@@ -194,9 +268,11 @@ useEffect(() => {
     }
 
     try {
-      const result = await updateRepresentTitle(selected);
+      // string을 number로 변환하여 전달
+      const titleId = parseInt(selected, 10);
+      const result = await updateRepresentTitle(titleId);
       if (result.success) {
-        console.log("칭호 변경 성공:", result.title);
+        console.log("칭호 변경 성공");
         alert(result.message);
       } else {
         alert(result.message || "칭호 변경에 실패했습니다.");
@@ -414,11 +490,20 @@ useEffect(() => {
           </div>
 
           <div className="flex justify-between items-center gap-3 sm:gap-6">
+            <h3 className="min-w-[112px] text-body1_M">금일 집중시간</h3>
+            <button className="basic-button-gray">
+              {isLoadingTodayTime ? "로딩 중..." : todayStudyTime}
+            </button>
+          </div>
+
+          <div className="flex justify-between items-center gap-3 sm:gap-6">
             <h3 className="min-w-[112px] text-body1_M">누적 집중시간</h3>
             <button className="basic-button-gray">
-              {userStats ? 
-                `${Math.floor((userStats.totalStudyTime || 0) / 3600)}시간 ${Math.floor(((userStats.totalStudyTime || 0) % 3600) / 60)}분` : 
-                "로딩 중..."
+              {isLoadingStats ? "로딩 중..." : 
+                (userStats ? 
+                  `${Math.floor((userStats.totalStudyTime || 0) / 3600)}시간 ${Math.floor(((userStats.totalStudyTime || 0) % 3600) / 60)}분` : 
+                  "0시간 0분"
+                )
               }
             </button>
           </div>
@@ -426,14 +511,18 @@ useEffect(() => {
           <div className="flex justify-between items-center gap-3 sm:gap-6">
             <h3 className="min-w-[112px] text-body1_M">누적 출석일</h3>
             <button className="basic-button-gray">
-              {userStats ? `${userStats.totalAttendanceDays || 0}일` : "로딩 중..."}
+              {isLoadingStats ? "로딩 중..." : 
+                (userStats ? `${userStats.totalAttendanceDays || 0}일` : "0일")
+              }
             </button>
           </div>
           
           <div className="flex justify-between items-center gap-3 sm:gap-6">
             <h3 className="min-w-[112px] text-body1_M">연속 출석일</h3>
             <button className="basic-button-gray">
-              {userStats ? `${userStats.continueAttendanceDays || 0}일` : "로딩 중..."}
+              {isLoadingStats ? "로딩 중..." : 
+                (userStats ? `${userStats.continueAttendanceDays || 0}일` : "0일")
+              }
             </button>
           </div>
         </div>

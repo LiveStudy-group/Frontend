@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getTodayStudyTime } from "../../lib/api/auth";
 import { useAuthStore } from "../../store/authStore";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [todayStudyTime, setTodayStudyTime] = useState<string>("00:00:00");
   const menuRef = useRef<HTMLDivElement>(null);
 
   const user = useAuthStore((state) => state.user)
@@ -13,6 +15,35 @@ const Header = () => {
     return state.logout;
   })
   const navigate = useNavigate()
+
+  // 오늘 집중 시간 조회
+  useEffect(() => {
+    const fetchTodayStudyTime = async () => {
+      if (isLoggedIn) {
+        try {
+          const result = await getTodayStudyTime();
+          if (result.success && result.data) {
+            const seconds = result.data.todayStudyTime;
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const remainingSeconds = seconds % 60;
+            setTodayStudyTime(
+              `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+            );
+          }
+        } catch (error) {
+          console.error('오늘 집중 시간 조회 실패:', error);
+          setTodayStudyTime("00:00:00");
+        }
+      }
+    };
+
+    fetchTodayStudyTime();
+    // 1분마다 업데이트
+    const interval = setInterval(fetchTodayStudyTime, 60000);
+    
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev)
@@ -58,7 +89,7 @@ const Header = () => {
                 <span className="font-medium">{user?.nickname}님 !</span>
               </div>
               <div className="text-xs">
-                오늘 집중 시간 : <strong>02:03:56</strong>
+                오늘 집중 시간 : <strong>{todayStudyTime}</strong>
               </div>
             </div>
           ) : (
@@ -67,7 +98,14 @@ const Header = () => {
             </div>
           )}
           <div className="relative z-50" ref={menuRef}>
-            { isLoggedIn && <div onClick={toggleMenu} className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer" />}
+            { isLoggedIn && (
+              <img 
+                onClick={toggleMenu} 
+                src={user?.profileImageUrl || "/img/my-page-profile-image-1.jpg"} 
+                alt={`${user?.nickname}님의 프로필`}
+                className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer object-cover"
+              />
+            )}
             { menuOpen && (
               <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-md text-sm z-10">
                 <ul className="divide-y divide-gray-200">
