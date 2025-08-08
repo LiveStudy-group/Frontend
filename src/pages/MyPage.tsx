@@ -116,9 +116,12 @@ useEffect(() => {
           description: title.description,
           acquiredAt: "2024-01-01",
           icon: "🏆",
-          isRepresent: title.isRepresentative
+          isRepresent: title.isRepresentative ?? title.representative ?? false
         }));
         setTitles(convertedTitles);
+        // 대표 칭호를 기본 선택값으로 반영
+        const currentRepresent = titlesResult.data.find(t => t.isRepresentative || t.representative);
+        if (currentRepresent) setSelectedTitle(String(currentRepresent.titleId));
       } else {
         console.warn("칭호 목록 조회 실패");
         // 기본 칭호 데이터 설정
