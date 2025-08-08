@@ -11,7 +11,8 @@ import {
   updateNickname,
   updatePassword,
   updateProfileImage,
-  updateRepresentTitle
+  updateRepresentTitle,
+  uploadProfileImage
 } from "../lib/api/auth";
 import { useAuthStore } from "../store/authStore";
 
@@ -178,26 +179,27 @@ useEffect(() => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 임시: 파일을 base64로 변환하거나 URL을 생성
-    // 실제로는 별도의 이미지 업로드 서비스가 필요할 수 있음
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const imageUrl = event.target?.result as string;
-        const result = await updateProfileImage(imageUrl);
+    try {
+      // 새로운 파일 업로드 API 사용
+      const uploadResult = await uploadProfileImage(file);
+      
+      if (uploadResult.success && uploadResult.imageUrl) {
+        // 업로드된 이미지 URL로 프로필 이미지 업데이트
+        const updateResult = await updateProfileImage(uploadResult.imageUrl);
         
-        if (result.success) {
-          setProfileImage(imageUrl);
-          alert(result.message);
+        if (updateResult.success) {
+          setProfileImage(uploadResult.imageUrl);
+          alert("프로필 이미지가 성공적으로 변경되었습니다.");
         } else {
-          alert(result.message);
+          alert(updateResult.message || "프로필 이미지 업데이트에 실패했습니다.");
         }
-      } catch (error) {
-        console.error("이미지 업로드 실패", error);
-        alert("이미지 업로드에 실패했습니다.");
+      } else {
+        alert(uploadResult.message || "이미지 업로드에 실패했습니다.");
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("이미지 업로드 실패", error);
+      alert("이미지 업로드에 실패했습니다.");
+    }
   };
 
   const handleUsernameSave = async () => {
