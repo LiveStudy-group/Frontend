@@ -26,7 +26,8 @@ api.interceptors.request.use(
       '/api/user/profile/nickname',
       '/api/user/profile/email',
       '/api/user/profile/password',
-      '/api/user/profile/profileImage'
+      '/api/user/profile/profileImage',
+      '/api/images/upload'
     ];
     
     // 현재 요청 URL이 인증이 필요한 API인지 확인
@@ -39,7 +40,7 @@ api.interceptors.request.use(
       const token = localStorage.getItem('authToken');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('�� 인증 토큰 추가:', config.url);
+        console.log('🔑 인증 토큰 추가:', config.url);
       } else {
         console.warn('⚠️ 토큰이 없습니다:', config.url);
       }
