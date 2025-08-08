@@ -5,6 +5,7 @@ export function decodeBase64Url(str: string) {
   return JSON.parse(json);
 }
 
+
 export function parseJwt(token: string) {
   const [h, p] = token.split('.');
   const header = decodeBase64Url(h);

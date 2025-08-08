@@ -1,6 +1,6 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
 import { Participant, Track, TrackPublication } from 'livekit-client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import Header from '../components/common/Header';
@@ -9,6 +9,7 @@ import MessageModal from '../components/MessageModal';
 import VideoGrid from '../components/video/VideoGrid';
 import api from '../lib/api/axios';
 import { useAuthStore } from '../store/authStore';
+import { parseJwt } from '../utils/jwt';
 
 const StudyRoomPage = () => {
   const navigate = useNavigate();
@@ -18,34 +19,68 @@ const StudyRoomPage = () => {
   const { user, token: accessToken } = useAuthStore();
   const { roomId } = useParams<{ roomId: string }>();
   const numericRoomId = Number(roomId);
-  const requestedRef = useRef(false);
 
   // 사용자 인증 정보가 없거나 토큰이 없는 경우 경고
   useEffect(() => {
-    if (!user || !accessToken || !roomId) return;
-    if (requestedRef.current) return;
-    requestedRef.current = true;
+    if (!user || !accessToken) {
+      console.warn('사용자 인증 정보 없음');
+      // navigate('/login');
+    }
+  }, [user, accessToken, navigate]);
 
-    (async () => {
+  // LiveKit 토큰 발급 및 로컬 검증
+  useEffect(() => {
+    if (!user || !accessToken || !roomId) return;
+
+    const fetchToken = async () => {
       try {
         const generatedIdentity = user.uid;
         setIdentity(generatedIdentity);
 
         const res = await api.post(
           '/api/livekit/token',
-          { roomName: roomId, identity: generatedIdentity },
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+          {
+            roomName: roomId,         
+            identity: generatedIdentity,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
 
-        setToken(res.data.token);
-        console.log('[🔑 토큰]', res.data.token);
+        const livekitToken = res.data?.token as string;
+        setToken(livekitToken);
+        console.log('[🔑 LiveKit 토큰]', livekitToken);
+
+        // 토큰 즉석 검증 로그 
+        try {
+          const { header, payload } = parseJwt(livekitToken);
+          console.log('[JWT header]', header);
+          console.log('[JWT payload]', payload);
+
+          const now = Math.floor(Date.now() / 1000);
+          console.log('[검증] iss', payload.iss === 'APITNAwd7xP7Tnt' ? 'OK' : 'NG', payload.iss);
+          console.log('[검증] exp', payload.exp, '>', now, payload.exp > now ? 'OK' : 'EXPIRED');
+          console.log('[검증] video.room === roomId', payload.video?.room, roomId, payload.video?.room === roomId ? 'OK' : 'MISMATCH');
+          console.log('[검증] sub(=identity)', payload.sub);
+
+
+          fetch(`https://api.live-study.com/rtc/validate?access_token=${livekitToken}`)
+            .then(r => console.log('[validate status]', r.status))
+            .catch(e => console.error('validate fetch error', e));
+        } catch (e) {
+          console.warn('[JWT 파싱 실패]', e);
+        }
+  
       } catch (err) {
         console.error('토큰 생성 실패:', err);
       }
-    })();
+    };
+
+    fetchToken();
   }, [user, accessToken, roomId]);
-
-
 
   // 디버깅 용 나중에 삭제 예정
   const RoomLogger = () => {
