@@ -35,14 +35,14 @@ useEffect(() => {
     try {
       // 프로필 정보 조회
       const profileResult = await getUserProfile();
-      if (profileResult.success && profileResult.profile) {
-        const profile = profileResult.profile;
+      if (profileResult.success && profileResult.data) {
+        const profile = profileResult.data;
         setProfileImage(profile.profileImage || "/img/my-page-profile-image-1.jpg");
         setNickname(profile.nickname || "");
         setEmail(profile.email || "");
         setSelectedTitle(profile.selectedTitle || "");
       } else {
-        console.warn("프로필 정보 조회 실패:", profileResult.message);
+        console.warn("프로필 정보 조회 실패");
         // authStore에서 기본 정보 사용
         if (user) {
           setProfileImage(user.profileImageUrl || "/img/my-page-profile-image-1.jpg");
@@ -53,10 +53,10 @@ useEffect(() => {
       
       // 통계 정보 조회
       const statsResult = await getUserStats();
-      if (statsResult.success && statsResult.stats) {
-        setUserStats(statsResult.stats);
+      if (statsResult.success && statsResult.data) {
+        setUserStats(statsResult.data);
       } else {
-        console.warn("통계 정보 조회 실패:", statsResult.message);
+        console.warn("통계 정보 조회 실패");
         // 기본 통계 데이터 설정
         setUserStats({
           totalStudyTime: 0,
@@ -67,10 +67,20 @@ useEffect(() => {
 
       // 칭호 목록 조회
       const titlesResult = await getUserTitles();
-      if (titlesResult.success && titlesResult.titles) {
-        setTitles(titlesResult.titles);
+      if (titlesResult.success && titlesResult.data) {
+        // UserTitleResponse를 기존 Title 형식으로 변환
+        const convertedTitles = titlesResult.data.map(title => ({
+          name: title.name,
+          key: title.titleId.toString(),
+          type: "성취",
+          description: title.description,
+          acquiredAt: "2024-01-01",
+          icon: "🏆",
+          isRepresent: title.isRepresentative
+        }));
+        setTitles(convertedTitles);
       } else {
-        console.warn("칭호 목록 조회 실패:", titlesResult.message);
+        console.warn("칭호 목록 조회 실패");
         // 기본 칭호 데이터 설정
         setTitles([
           { name: "신입생", key: "newbie", type: "기본", description: "첫 시작", acquiredAt: "2024-01-01", icon: "🎓", isRepresent: false },
@@ -112,8 +122,8 @@ useEffect(() => {
         const imageUrl = event.target?.result as string;
         const result = await updateProfileImage(imageUrl);
         
-        if (result.success && result.imageUrl) {
-          setProfileImage(result.imageUrl);
+        if (result.success) {
+          setProfileImage(imageUrl);
           alert(result.message);
         } else {
           alert(result.message);
@@ -194,9 +204,11 @@ useEffect(() => {
     }
 
     try {
-      const result = await updateRepresentTitle(selected);
+      // string을 number로 변환하여 전달
+      const titleId = parseInt(selected, 10);
+      const result = await updateRepresentTitle(titleId);
       if (result.success) {
-        console.log("칭호 변경 성공:", result.title);
+        console.log("칭호 변경 성공");
         alert(result.message);
       } else {
         alert(result.message || "칭호 변경에 실패했습니다.");

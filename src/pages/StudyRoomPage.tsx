@@ -1,4 +1,5 @@
 import { LiveKitRoom, useRoomContext } from '@livekit/components-react';
+import { Participant, Track, TrackPublication } from 'livekit-client';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../components/common/Footer';
@@ -33,8 +34,8 @@ const StudyRoomPage = () => {
         const res = await api.post(
           '/api/livekit/token',
           {
-            roomName: 'studyroom',
-            identity: generatedIdentity,
+            roomName: roomId,
+            identity: user.uid,
           },
           {
             headers: {
@@ -43,34 +44,64 @@ const StudyRoomPage = () => {
           }
         );
         setToken(res.data.token);
+    console.log('[🔑 토큰]', res.data.token);
+
       } catch (err) {
         console.error('토큰 생성 실패:', err);
       }
     };
 
     fetchToken();
+    
   }, [user, accessToken]);
 
 
   // 디버깅 용 나중에 삭제 예정
-  const RoomLogger = () => {
-    const room = useRoomContext();
+ const RoomLogger = () => {
+  const room = useRoomContext();
 
-    useEffect(() => {
-      if (room.state === 'connected') {
-        const local = room.localParticipant;
-        const videoTrack = local
-          .getTrackPublications()
-          .find((pub) => pub.track?.kind === 'video')?.track;
+  useEffect(() => {
+    console.log('[🧩 ROOM STATE]', room.state);
 
-        if (!videoTrack) {
-          console.warn('비디오 트랙이 없습니다.');
-        }
-      }
-    }, [room]);
+    const handleConnected = () => {
+      console.log('✅ LiveKit 연결 성공');
+    };
 
-    return null;
-  };
+    const handleDisconnected = () => {
+      console.warn('❌ LiveKit 연결 종료됨');
+    };
+
+    const handleTrackSubscribed = (
+      track: Track,
+      publication: TrackPublication,
+      participant: Participant
+    ) => {
+      console.log(`🎥 ${participant.identity}의 ${track.kind} 트랙 구독됨`);
+    };
+
+    const handleTrackUnsubscribed = (
+      track: Track,
+      publication: TrackPublication,
+      participant: Participant
+    ) => {
+      console.log(`🛑 ${participant.identity}의 ${track.kind} 트랙 해제됨`);
+    };
+
+    room.on('connected', handleConnected);
+    room.on('disconnected', handleDisconnected);
+    room.on('trackSubscribed', handleTrackSubscribed);
+    room.on('trackUnsubscribed', handleTrackUnsubscribed);
+
+    return () => {
+      room.off('connected', handleConnected);
+      room.off('disconnected', handleDisconnected);
+      room.off('trackSubscribed', handleTrackSubscribed);
+      room.off('trackUnsubscribed', handleTrackUnsubscribed);
+    };
+  }, [room]);
+
+  return null;
+};
 
 
   // 스터디룸 퇴장 처리
@@ -104,7 +135,7 @@ const StudyRoomPage = () => {
   return (
     <LiveKitRoom
       token={token}
-      serverUrl="wss://livestudy-7t5xkn6m.livekit.cloud"
+      serverUrl="wss://api.live-study.com/ws"
       connect
       video
       audio={false} 
