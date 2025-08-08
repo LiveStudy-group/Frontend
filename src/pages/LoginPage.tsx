@@ -22,16 +22,24 @@ export default function LoginPage() {
             <Link to={'/email-login'}>Email 로그인</Link>
           </button>
            
-          
-          <a href={GOOGLE_AUTH_URL} className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center">
+          <a
+            href={GOOGLE_AUTH_URL}
+            className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center"
+          >
             Google 로그인
           </a>
 
-          <a href={KAKAO_AUTH_URL} className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center">
+          <a
+            href={KAKAO_AUTH_URL}
+            className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center"
+          >
             Kakao 로그인
           </a>
 
-          <a href={NAVER_AUTH_URL} className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center">
+          <a
+            href={NAVER_AUTH_URL}
+            className="w-full py-3 bg-gray-100 border border-gray-300 rounded-xl text-body1_R text-gray-500 hover:bg-gray-200 text-center"
+          >
             Naver 로그인
           </a>
         </div>
