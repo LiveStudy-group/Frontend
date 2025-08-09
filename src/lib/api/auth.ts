@@ -37,9 +37,9 @@ import type {
   UserActivity,
   UserStudyStat
 } from '../../types/auth';
+import { normalizeImageUrl, pickImageUrlFromResponse } from '../../utils/image';
 import api from './axios';
 import { setAuthToken as setAuthTokenGlobal } from './token';
-import { normalizeImageUrl, pickImageUrlFromResponse } from '../../utils/image';
 
 // ============================================
 // 에러 처리 및 유틸리티 함수들
