@@ -15,6 +15,7 @@ import {
   uploadProfileImage
 } from "../lib/api/auth";
 import { useAuthStore } from "../store/authStore";
+import { normalizeImageUrl } from "../utils/image";
 
 export default function MyPage() {
   const { user } = useAuthStore();
@@ -42,7 +43,7 @@ useEffect(() => {
       const profileResult = await getUserProfile();
       if (profileResult.success && profileResult.data) {
         const profile = profileResult.data;
-        setProfileImage(profile.profileImage || "/img/my-page-profile-image-1.jpg");
+        setProfileImage(normalizeImageUrl(profile.profileImage) || "/img/my-page-profile-image-1.jpg");
         setNickname(profile.nickname || "");
         setEmail(profile.email || "");
         setSelectedTitle(profile.selectedTitle || "");
@@ -50,7 +51,7 @@ useEffect(() => {
         console.warn("프로필 정보 조회 실패");
         // authStore에서 기본 정보 사용
         if (user) {
-          setProfileImage(user.profileImageUrl || "/img/my-page-profile-image-1.jpg");
+          setProfileImage(normalizeImageUrl(user.profileImageUrl) || "/img/my-page-profile-image-1.jpg");
           setNickname(user.nickname || "");
           setEmail(user.email || "");
         }
@@ -134,7 +135,7 @@ useEffect(() => {
       console.error("사용자 데이터 조회 실패:", error);
       // 에러 시 기본 데이터 사용
       if (user) {
-        setProfileImage(user.profileImageUrl || "/img/my-page-profile-image-1.jpg");
+        setProfileImage(normalizeImageUrl(user.profileImageUrl) || "/img/my-page-profile-image-1.jpg");
         setNickname(user.nickname || "");
         setEmail(user.email || "");
       }
@@ -190,8 +191,8 @@ useEffect(() => {
         // 업로드된 이미지 URL로 프로필 이미지 업데이트
         const updateResult = await updateProfileImage(uploadResult.imageUrl);
         
-        if (updateResult.success) {
-          setProfileImage(uploadResult.imageUrl);
+          if (updateResult.success) {
+          setProfileImage(normalizeImageUrl(uploadResult.imageUrl) || "/img/my-page-profile-image-1.jpg");
           alert("프로필 이미지가 성공적으로 변경되었습니다.");
         } else {
           alert(updateResult.message || "프로필 이미지 업데이트에 실패했습니다.");
