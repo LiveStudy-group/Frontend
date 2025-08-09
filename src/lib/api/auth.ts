@@ -39,6 +39,7 @@ import type {
 } from '../../types/auth';
 import api from './axios';
 import { setAuthToken as setAuthTokenGlobal } from './token';
+import { normalizeImageUrl, pickImageUrlFromResponse } from '../../utils/image';
 
 // ============================================
 // 에러 처리 및 유틸리티 함수들
@@ -545,7 +546,8 @@ export async function getUserProfile(): Promise<ProfileApiResponse> {
     
     // 스토어 동기화: 프로필의 닉네임/이메일/이미지를 스토어에 반영
     const { useAuthStore } = await import('../../store/authStore');
-    const { email, nickname, profileImage } = response.data;
+    const { email, nickname } = response.data;
+    const profileImage = normalizeImageUrl(response.data?.profileImage);
     useAuthStore.getState().updateUser({
       email,
       nickname,
@@ -566,7 +568,7 @@ export async function updateProfileImage(imageUrl: string): Promise<ProfileImage
       newProfileImage: imageUrl
     } as UpdateProfileImageRequest);
     
-    const resultImageUrl = response.data.imageUrl || imageUrl;
+    const resultImageUrl = normalizeImageUrl(pickImageUrlFromResponse(response.data) || imageUrl);
     
     // authStore 업데이트
     const { useAuthStore } = await import('../../store/authStore');
@@ -790,10 +792,12 @@ export async function uploadProfileImage(imageFile: File): Promise<{ success: bo
       },
     });
     
+    const imageUrl = normalizeImageUrl(pickImageUrlFromResponse(response.data));
+    
     return { 
       success: true, 
       message: '프로필 이미지가 업로드되었습니다.',
-      imageUrl: response.data
+      imageUrl
     };
   } catch (error: unknown) {
     const errorMessage = handleAxiosError(error, '이미지 업로드에 실패했습니다.');
