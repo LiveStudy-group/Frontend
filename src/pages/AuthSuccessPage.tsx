@@ -2,11 +2,12 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { setAuthToken } from "../lib/api/token";
 import { useAuthStore } from "../store/authStore";
+import { getUserProfile } from "../lib/api/auth";
 
 export default function AuthSuccessPage() {
   const nav = useNavigate();
   const { search, hash } = useLocation();
-  const login = useAuthStore((state) => state.login);
+  const login = useAuthStore((s) => s.login);
 
   useEffect(() => {
     const qs = search && search !== "" ? search : hash?.replace(/^#/, "") || "";
@@ -20,10 +21,38 @@ export default function AuthSuccessPage() {
     }
 
     setAuthToken(token);
+    
+    // 토큰 존재
+    localStorage.getItem('authToken')
 
-    window.history.replaceState(null, "", "/auth/success");
+    //서버 인증 확인
+    fetch('https://api.live-study.com/api/user/profile', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+    }).then(r => console.log('status:', r.status))
 
-    nav(isNew ? "/signup/extra-info" : "/", { replace: true });
+    getUserProfile()
+      .then((res) => {
+        const p = res?.data;
+        login(
+          {
+            uid: p?.email?.split("@")[0] ?? p?.nickname ?? "user",
+            email: p?.email ?? "",
+            nickname: p?.nickname ?? "",
+            profileImageUrl: p?.profileImage ?? "default.jpg",
+          },
+          token
+        );
+      })
+      .catch(() => {
+        login(
+          { uid: "user", email: "", nickname: "", profileImageUrl: "default.jpg" },
+          token
+        );
+      })
+      .finally(() => {
+        window.history.replaceState(null, "", "/auth/success");
+        nav(isNew ? "/signup/extra-info" : "/", { replace: true });
+      });
   }, [search, hash, nav, login]);
 
   return <div>로그인 처리 중입니다…</div>;
