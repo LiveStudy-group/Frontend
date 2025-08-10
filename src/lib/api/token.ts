@@ -13,3 +13,7 @@ export function setAuthToken(token: string | null) {
     localStorage.removeItem('authToken');
   }
 }
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem('authToken');
+}
