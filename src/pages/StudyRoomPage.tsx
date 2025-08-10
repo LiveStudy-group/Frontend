@@ -37,10 +37,11 @@ const StudyRoomPage = () => {
         const generatedIdentity = user.uid;
         setIdentity(generatedIdentity);
 
+        // ⬇️ 모든 네트워크 요청을 api.post로 통일
         const res = await api.post(
           '/api/livekit/token',
           {
-            roomName: roomId,         
+            roomName: roomId,
             identity: generatedIdentity,
           },
           {
@@ -54,7 +55,7 @@ const StudyRoomPage = () => {
         setToken(livekitToken);
         console.log('[🔑 LiveKit 토큰]', livekitToken);
 
-        // 토큰 즉석 검증 로그 
+        // 토큰 즉석 검증 로그
         try {
           const { header, payload } = parseJwt(livekitToken);
           console.log('[JWT header]', header);
@@ -66,14 +67,17 @@ const StudyRoomPage = () => {
           console.log('[검증] video.room === roomId', payload.video?.room, roomId, payload.video?.room === roomId ? 'OK' : 'MISMATCH');
           console.log('[검증] sub(=identity)', payload.sub);
 
-
-          fetch(`https://api.live-study.com/rtc/validate?access_token=${livekitToken}`)
-            .then(r => console.log('[validate status]', r.status))
-            .catch(e => console.error('validate fetch error', e));
+          const validateRes = await api.post(
+            '/ws/validate',
+            null,
+            {
+              params: { access_token: livekitToken },
+            }
+          );
+          console.log('[validate status]', validateRes.status);
         } catch (e) {
-          console.warn('[JWT 파싱 실패]', e);
+          console.warn('[JWT 파싱/검증 요청 실패]', e);
         }
-  
       } catch (err) {
         console.error('토큰 생성 실패:', err);
       }
@@ -106,7 +110,6 @@ const StudyRoomPage = () => {
     return null;
   };
 
-
   // 스터디룸 퇴장 처리
   const handleLeaveRoom = async () => {
     if (!user) {
@@ -115,15 +118,20 @@ const StudyRoomPage = () => {
     }
 
     try {
-      await api.post(`/api/study-rooms/leave`, null, {
-        params: {
-          userId: user.uid, 
-        },
-        headers: {
-          Authorization: `Bearer ${accessToken}`, 
-        },
-      });
-
+      // 기존 응답 미할당 → const res 로 통일
+      const res = await api.post(
+        '/api/study-rooms/leave',
+        null,
+        {
+          params: {
+            userId: user.uid,
+          },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log('퇴장 응답 상태:', res.status);
       navigate('/main');
     } catch (err) {
       console.error('퇴장 실패:', err);
@@ -134,13 +142,12 @@ const StudyRoomPage = () => {
   // 토큰 없으면 렌더링하지 않음
   if (!token) return <div>스터디룸 입장 중입니다...</div>;
 
-
   return (
     <LiveKitRoom
-      key={`${roomId}-${token.slice(0,12)}`}
+      key={`${roomId}-${token.slice(0, 12)}`}
       token={token}
-      serverUrl="wss://api.live-study.com" 
-      connect={!!token}                 
+      serverUrl="wss://api.live-study.com"
+      connect={!!token}
       video
       audio={false}
     >
@@ -148,11 +155,10 @@ const StudyRoomPage = () => {
       <RoomLogger />
 
       <div className="bg-gray-50 flex flex-col nodrag min-h-screen overflow-hidden">
-        
-      {/* 공통 헤더 컴포넌트 */}
+        {/* 공통 헤더 컴포넌트 */}
         <Header />
 
-      {/* 퇴장하기 버튼 */}
+        {/* 퇴장하기 버튼 */}
         <div className="w-full max-w-[1280px] mx-auto flex justify-end p-4">
           <button
             onClick={handleLeaveRoom}
@@ -161,8 +167,8 @@ const StudyRoomPage = () => {
             퇴장하기
           </button>
         </div>
-        <main className="flex-1 w-full max-w-[1280px] mx-auto flex overflow-hidden">
 
+        <main className="flex-1 w-full max-w-[1280px] mx-auto flex overflow-hidden">
           {/* 화상 공유 컴포넌트 */}
           <VideoGrid roomId={numericRoomId} />
 
@@ -171,7 +177,7 @@ const StudyRoomPage = () => {
           <MessageModal open={isModalOpen} onClose={() => setIsModalOpen(false)} useMock={true} />
           {/* <MockMessageTest /> */}
         </main>
-        
+
         {/* 공통 푸터 컴포넌트 */}
         <Footer />
       </div>
