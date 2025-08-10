@@ -15,7 +15,8 @@ import Redirection from './pages/Redirection';
 import StudyRoomPage from './pages/StudyRoomPage';
 import PrivateRoute from './routes/PrivateRoute';
 import { useAuthStore } from './store/authStore';
-
+import AuthSuccessPage from "./pages/AuthSuccessPage";
+import AuthFailurePage from "./pages/AuthFailurePage";
 
 function App() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -39,6 +40,8 @@ function App() {
       <Route path='/message-test' element={<MessageTestPage />} />
       <Route path='*' element={<NotFoundPage />} />
       <Route path="/kakao/callback" element={<Redirection />} />
+      <Route path="/auth/success" element={<AuthSuccessPage />} />
+      <Route path="/auth/failure" element={<AuthFailurePage/> } />
 
       {/* 보호 라우트 */}
       <Route
