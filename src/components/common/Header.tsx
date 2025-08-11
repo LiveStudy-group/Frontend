@@ -79,8 +79,9 @@ const Header = () => {
         <div className="flex items-center space-x-4">
           {isLoggedIn ? (
             <div className="text-sm text-right">
-              <div>
+              <div className="leading-snug">
                 <span className="text-caption1_M">환영합니다 !</span>
+                <br className="sm:hidden" />
                 {user?.title?.key && user?.title?.key !== 'no-title' && user?.title?.name && user?.title?.name !== '대표 칭호를 설정해주세요!' ? (
                   <span className="text-primary-400 mx-1 font-medium">{user?.title?.icon} {user?.title?.name}</span>
                 ) : (
@@ -99,12 +100,16 @@ const Header = () => {
           )}
           <div className="relative z-50" ref={menuRef}>
             { isLoggedIn && (
-              <img 
-                onClick={toggleMenu} 
-                src={user?.profileImageUrl || "/img/my-page-profile-image-1.jpg"} 
-                alt={`${user?.nickname}님의 프로필`}
-                className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer object-cover"
-              />
+              <div
+                onClick={toggleMenu}
+                className="w-10 h-10 rounded-full overflow-hidden bg-gray-300 cursor-pointer"
+              >
+                <img
+                  src={user?.profileImageUrl || "/img/my-page-profile-image-1.jpg"}
+                  alt={`${user?.nickname}님의 프로필`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             )}
             { menuOpen && (
               <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-md text-sm z-10">
