@@ -409,11 +409,11 @@ useEffect(() => {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-between items-center gap-3 sm:gap-6">
+          <div className="flex flex-wrap justify-between items-start gap-3 sm:gap-6">
             <div className="w-full sm:w-auto">
               <h3 className="min-w-[112px] text-body1_M">비밀번호</h3>
             </div>
-            <div className="flex-1 flex justify-end items-center gap-4">
+            <div className="flex-1 flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-3 sm:gap-4">
               {isEditingPassword ? (
                 <>
                   <input
@@ -421,25 +421,25 @@ useEffect(() => {
                     placeholder="현재 비밀번호"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
+                    className="w-full sm:flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
                   />
                   <input
                     type="password"
                     placeholder="새 비밀번호"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
+                    className="w-full sm:flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
                   />
                   <input
                     type="password"
                     placeholder="새 비밀번호 확인"
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
+                    className="w-full sm:flex-1 px-3 py-2 border rounded-lg border-gray-300 text-body1_R"
                   />
                   <button
                     onClick={handlePasswordSave}
-                    className="basic-button-primary hover:bg-primary-600 text-white"
+                    className="basic-button-primary w-full sm:w-auto hover:bg-primary-600 text-white"
                   >
                     저장
                   </button>
@@ -450,7 +450,7 @@ useEffect(() => {
                       setConfirmNewPassword("");
                       setIsEditingPassword(false);
                     }}
-                    className="basic-button-gray hover:bg-gray-200"
+                    className="basic-button-gray w-full sm:w-auto hover:bg-gray-200"
                   >
                     취소
                   </button>
@@ -458,7 +458,7 @@ useEffect(() => {
               ) : (
                 <button
                   onClick={() => setIsEditingPassword(true)}
-                  className="basic-button-gray hover:bg-gray-200 text-body1_R"
+                  className="basic-button-gray w-full sm:w-auto hover:bg-gray-200 text-body1_R"
                 >
                   비밀번호 변경
                 </button>

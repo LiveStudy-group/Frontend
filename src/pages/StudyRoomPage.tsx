@@ -14,7 +14,7 @@ import { parseJwt } from '../utils/jwt';
 const StudyRoomPage = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState('');
-  const [identity, setIdentity] = useState('');
+  const [identity, setIdentity] = useState(''); // 유지: 내부 검증 로그에 사용됨
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, token: accessToken } = useAuthStore();
   const { roomId } = useParams<{ roomId: string }>();
@@ -88,9 +88,9 @@ const StudyRoomPage = () => {
     useEffect(() => {
       const onCon = () => console.log('LiveKit 연결 성공');
       const onDis = () => console.warn('LiveKit 연결 종료됨');
-      const onSub = (t: Track, p: TrackPublication, u: Participant) =>
+      const onSub = (t: Track, _p: TrackPublication, u: Participant) =>
         console.log(`${u.identity}의 ${t.kind} 구독됨`);
-      const onUnsub = (t: Track, p: TrackPublication, u: Participant) =>
+      const onUnsub = (t: Track, _p: TrackPublication, u: Participant) =>
         console.log(`${u.identity}의 ${t.kind} 해제됨`);
       room.on('connected', onCon);
       room.on('disconnected', onDis);
@@ -168,7 +168,12 @@ const StudyRoomPage = () => {
 
           {/* 메시지 버튼 및 모달 */}
           <MessageButton onClick={() => setIsModalOpen(true)} />
-          <MessageModal open={isModalOpen} onClose={() => setIsModalOpen(false)} useMock={true} />
+          <MessageModal
+            open={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            useMock={false}
+            roomId={numericRoomId}
+          />
           {/* <MockMessageTest /> */}
         </main>
         
