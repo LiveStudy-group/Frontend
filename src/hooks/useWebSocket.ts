@@ -1,25 +1,19 @@
 import { Client, type Message } from '@stomp/stompjs';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { WebSocketChatMessage, WebSocketReceivedMessage } from '../types/Message';
-
-// 임시 해결책: 타입을 직접 정의
-interface WebSocketConnectionConfig {
-  url: string;
-  publishPath: string;
-  subscribePath: string;
-}
+import { useAuthStore } from '../store/authStore';
+import type { WebSocketConnectionConfig, WsInboundMessage, WsOutboundMessage } from '../types/Message';
 
 interface UseWebSocketReturn {
   isConnected: boolean;
-  sendMessage: (message: WebSocketChatMessage) => void;
-  messages: WebSocketReceivedMessage[];
+  sendMessage: (message: WsOutboundMessage) => void;
+  messages: WsInboundMessage[];
   connect: () => void;
   disconnect: () => void;
 }
 
 const useWebSocket = (config: WebSocketConnectionConfig, roomId: string): UseWebSocketReturn => {
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<WebSocketReceivedMessage[]>([]);
+  const [messages, setMessages] = useState<WsInboundMessage[]>([]);
   const clientRef = useRef<Client | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -29,11 +23,17 @@ const useWebSocket = (config: WebSocketConnectionConfig, roomId: string): UseWeb
     }
 
     try {
+      const authToken = useAuthStore.getState().token;
+      // 핸드셰이크 단계에서 토큰을 쿼리로 전달 (브라우저는 커스텀 헤더 불가)
+      const urlWithToken = authToken
+        ? `${config.url}${config.url.includes('?') ? '&' : '?'}access_token=${encodeURIComponent(authToken)}`
+        : config.url;
       const client = new Client({
-        brokerURL: config.url,
+        brokerURL: urlWithToken,
         debug: (str) => {
           console.log('STOMP Debug:', str);
         },
+        connectHeaders: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
@@ -45,14 +45,15 @@ const useWebSocket = (config: WebSocketConnectionConfig, roomId: string): UseWeb
         
         // 구독
         const subscribePath = config.subscribePath.replace('{roomId}', roomId);
-        client.subscribe(subscribePath, (message: Message) => {
+         client.subscribe(subscribePath, (message: Message) => {
           try {
-            const data: WebSocketReceivedMessage = JSON.parse(message.body);
+            const data: WsInboundMessage = JSON.parse(message.body);
             console.log('받은 메시지:', data);
-            
-            if (data.type === 'chat') {
-              setMessages(prev => [...prev, data]);
-            }
+            // 최근 500개까지만 보관하여 메모리 증가 방지
+            setMessages(prev => {
+              const next = [...prev, data];
+              return next.length > 500 ? next.slice(next.length - 500) : next;
+            });
           } catch (error) {
             console.error('메시지 파싱 오류:', error);
           }
@@ -91,11 +92,18 @@ const useWebSocket = (config: WebSocketConnectionConfig, roomId: string): UseWeb
     setIsConnected(false);
   }, []);
 
-  const sendMessage = useCallback((message: WebSocketChatMessage) => {
+  const sendMessage = useCallback((message: WsOutboundMessage) => {
     if (clientRef.current?.connected) {
+      const destination = config.publishPath.replace('{roomId}', message.roomId);
       clientRef.current.publish({
-        destination: config.publishPath,
-        body: JSON.stringify(message)
+        destination,
+        headers: { Authorization: useAuthStore.getState().token ? `Bearer ${useAuthStore.getState().token}` : '' },
+        body: JSON.stringify({
+          senderId: message.senderId,
+          roomId: message.roomId,
+          content: message.content,
+          timestamp: message.timestamp ?? new Date().toISOString(),
+        })
       });
       console.log('메시지 전송:', message);
     } else {

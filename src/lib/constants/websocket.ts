@@ -6,7 +6,7 @@ interface WebSocketConnectionConfig {
 }
 
 export const WEBSOCKET_CONFIG: WebSocketConnectionConfig = {
-  url: 'wss://api.live-study.com/ws',
-  publishPath: '/pub/api/study-room/chat',
-  subscribePath: '/topic/{roomId}'
-}; 
+  url: import.meta.env.VITE_WS_URL ?? 'wss://api.live-study.com/ws',
+  publishPath: import.meta.env.VITE_WS_PUB_PATH ?? '/pub/chat',
+  subscribePath: import.meta.env.VITE_WS_SUB_PATH ?? '/topic/messages'
+};
