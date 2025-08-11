@@ -17,23 +17,19 @@ export interface MessageModalProps {
   onClose: () => void;
 }
 
-// 웹소켓 메시지 타입 정의
-export interface WebSocketChatMessage {
-  userId: string;
+// WebSocket 메시지 타입(백엔드 스키마 기준)
+export interface WsOutboundMessage {
+  senderId: string;
   roomId: string;
-  nickname: string;
-  message: string;
+  content: string;
+  timestamp?: string; // 서버에서 생성 가능
 }
 
-export interface WebSocketReceivedMessage {
-  type: string;
-  payload: {
-    userId: string;
-    roomId: string;
-    nickname: string;
-    message: string;
-  };
-  timeStamp: string;
+export interface WsInboundMessage {
+  senderId: string;
+  roomId: string;
+  content: string;
+  timestamp: string;
 }
 
 export interface WebSocketConnectionConfig {
