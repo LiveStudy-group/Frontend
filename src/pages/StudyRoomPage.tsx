@@ -20,6 +20,7 @@ const StudyRoomPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const numericRoomId = Number(roomId);
 
+
   // 사용자 인증 정보가 없거나 토큰이 없는 경우 경고
   useEffect(() => {
     if (!user || !accessToken) {
@@ -37,7 +38,6 @@ const StudyRoomPage = () => {
         const generatedIdentity = user.uid;
         setIdentity(generatedIdentity);
 
-        // ⬇️ 모든 네트워크 요청을 api.post로 통일
         const res = await api.post(
           '/api/livekit/token',
           {
