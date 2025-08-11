@@ -22,7 +22,6 @@ const LiveVideoBox = ({ participant }: Props) => {
         track.attach(videoRef.current);
         videoRef.current
           .play()
-          .then(() => console.log('비디오 자동 재생 성공'))
           .catch((err) => console.warn('비디오 자동 재생 실패:', err));
       }
     };
@@ -35,12 +34,10 @@ const LiveVideoBox = ({ participant }: Props) => {
 
     const unsubscribers: (() => void)[] = [];
 
-    // 로컬 참가자 처리
+    // 로컬
     if (participant instanceof LocalParticipant) {
       const cameraPub = participant.getTrackPublication(Track.Source.Camera);
-      if (cameraPub?.track) {
-        attachTrack(cameraPub.track);
-      }
+      if (cameraPub?.track) attachTrack(cameraPub.track);
 
       const onLocalTrackPublished = (pub: TrackPublication) => {
         if (pub.source === Track.Source.Camera && pub.track) {
@@ -50,24 +47,20 @@ const LiveVideoBox = ({ participant }: Props) => {
 
       room.on(RoomEvent.LocalTrackPublished, onLocalTrackPublished);
       unsubscribers.push(() =>
-        room.off(RoomEvent.LocalTrackPublished, onLocalTrackPublished)
+        room.off(RoomEvent.LocalTrackPublished, onLocalTrackPublished),
       );
 
-      if (cameraPub?.track) {
-        unsubscribers.push(() => detachTrack(cameraPub.track!));
-      }
+      if (cameraPub?.track) unsubscribers.push(() => detachTrack(cameraPub.track!));
     }
 
-    // 원격 참가자 처리
+    // 원격
     const publications = participant.getTrackPublications();
     publications.forEach((pub) => {
       if (pub.track) {
         attachTrack(pub.track);
       } else {
         const handler = (track: Track) => {
-          if (track.kind === Track.Kind.Video) {
-            attachTrack(track);
-          }
+          if (track.kind === Track.Kind.Video) attachTrack(track);
         };
         pub.on('subscribed', handler);
         unsubscribers.push(() => pub.off('subscribed', handler));
@@ -75,18 +68,15 @@ const LiveVideoBox = ({ participant }: Props) => {
     });
 
     const handleTrackSubscribed = (track: Track) => {
-      if (track.kind === Track.Kind.Video) {
-        attachTrack(track);
-      }
+      if (track.kind === Track.Kind.Video) attachTrack(track);
     };
-
     participant.on('trackSubscribed', handleTrackSubscribed);
     unsubscribers.push(() =>
-      participant.off('trackSubscribed', handleTrackSubscribed)
+      participant.off('trackSubscribed', handleTrackSubscribed),
     );
 
     return () => {
-      unsubscribers.forEach((unsubscribe) => unsubscribe());
+      unsubscribers.forEach((u) => u());
     };
   }, [participant, room]);
 
