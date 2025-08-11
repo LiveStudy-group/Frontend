@@ -3,8 +3,8 @@ import { createLocalTracks } from 'livekit-client';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/common/Footer';
 import Header from '../components/common/Header';
-import { useAuthStore } from '../store/authStore'; 
 import api from '../lib/api/axios';
+import { useAuthStore } from '../store/authStore';
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -41,16 +41,27 @@ const MainPage = () => {
       return;
     }
 
-    try {
-      const response = await api.post('/api/study-rooms/enter', null, {
+     try {
+      const resp = await api.post('/api/study-rooms/enter', null, {
         params: { userId: user.uid },
       });
 
-      const roomId = response.data; 
+      const data = resp.data;
+
+      const roomId =
+        typeof data === 'string' || typeof data === 'number'
+          ? String(data)
+          : data?.roomId
+          ? String(data.roomId)
+          : '';
+
+      if (!roomId) {
+        throw new Error('roomId가 응답에 없습니다.');
+      }
+
       navigate(`/studyroom/${roomId}`);
-      
-    }catch (error: unknown) {
-      const err = error as AxiosError<{ message: string }>;
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
       alert(err.response?.data?.message ?? '스터디룸 입장 중 오류가 발생했습니다.');
     }
   };
