@@ -24,8 +24,12 @@ const useWebSocket = (config: WebSocketConnectionConfig, roomId: string): UseWeb
 
     try {
       const authToken = useAuthStore.getState().token;
+      // 핸드셰이크 단계에서 토큰을 쿼리로 전달 (브라우저는 커스텀 헤더 불가)
+      const urlWithToken = authToken
+        ? `${config.url}${config.url.includes('?') ? '&' : '?'}access_token=${encodeURIComponent(authToken)}`
+        : config.url;
       const client = new Client({
-        brokerURL: config.url,
+        brokerURL: urlWithToken,
         debug: (str) => {
           console.log('STOMP Debug:', str);
         },
