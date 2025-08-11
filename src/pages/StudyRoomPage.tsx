@@ -67,14 +67,6 @@ const StudyRoomPage = () => {
           console.log('[검증] video.room === roomId', payload.video?.room, roomId, payload.video?.room === roomId ? 'OK' : 'MISMATCH');
           console.log('[검증] sub(=identity)', payload.sub);
 
-          const validateRes = await api.post(
-            '/ws/validate',
-            null,
-            {
-              params: { access_token: livekitToken },
-            }
-          );
-          console.log('[validate status]', validateRes.status);
         } catch (e) {
           console.warn('[JWT 파싱/검증 요청 실패]', e);
         }
