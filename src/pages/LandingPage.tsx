@@ -1,7 +1,7 @@
 import { FiClock, FiMessageCircle, FiUsers, FiVideo } from "react-icons/fi";
-import Header from "../components/common/Header";
-import Footer from "../components/common/Footer";
 import { Link } from "react-router-dom";
+import Footer from "../components/common/Footer";
+import Header from "../components/common/Header";
 
 export default function LandingPage() {
   return (
@@ -23,7 +23,7 @@ export default function LandingPage() {
         {/* 딤처리 */}
         <div className="absolute inset-0 bg-black opacity-50 z-10" />
         {/* 배너 이미지 */}
-        <img src="/public/img/landing-page-banner-1.jpg" alt="랜딩페이지 배너 이미지" className="absolute w-full h-full object-cover top-0 z-0" />
+        <img src="/img/landing-page-banner-1.jpg" alt="랜딩페이지 배너 이미지" className="absolute w-full h-full object-cover top-0 z-0" />
       </section>
       <section className="max-w-[1280px] w-full m-auto px-6 lg:px-0 flex flex-col py-16">
         <h2 className="text-headline3_B md:text-headline2_B mb-4 text-center"><span className="text-primary-500">LiveStudy</span> 는 이런 서비스에요</h2>
