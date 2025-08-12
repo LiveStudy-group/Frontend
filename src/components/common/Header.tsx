@@ -102,7 +102,7 @@ const Header = () => {
             { isLoggedIn && (
               <div
                 onClick={toggleMenu}
-                className="w-10 h-10 rounded-full overflow-hidden bg-gray-300 cursor-pointer"
+                className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 cursor-pointer"
               >
                 <img
                   src={user?.profileImageUrl || "/img/my-page-profile-image-1.jpg"}
