@@ -58,7 +58,7 @@ export default function LandingPage() {
           <ul className="flex flex-col gap-12">
             {/* Step 1 */}
             <li className="flex flex-col sm:flex-row items-center gap-6">
-              <img src="/img/feature-join-room.png" alt="방 입장" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
+              <img src="/img/how-feature-join-room.png" alt="방 입장" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
               <div className="flex-1 w-full">
                 <h3 className="text-headline4_B md:text-headline3_B mb-2">1. 랜덤 스터디룸에 입장</h3>
                 <p className="text-body1_R md:text-base text-gray-500">
@@ -70,7 +70,7 @@ export default function LandingPage() {
 
             {/* Step 2 */}
             <li className="flex flex-col sm:flex-row-reverse items-center gap-6">
-              <img src="/img/feature-mic-off.png" alt="마이크 꺼짐 상태" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
+              <img src="/img/how-feature-mic-off.png" alt="마이크 꺼짐 상태" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
               <div className="flex-1 w-full">
                 <h3 className="text-headline4_B md:text-headline3_B mb-2 text-left sm:text-right">2. 마이크 OFF, 조용히 집중 시작</h3>
                 <p className="text-body1_R md:text-base text-gray-500 text-left sm:text-right">
@@ -82,7 +82,7 @@ export default function LandingPage() {
 
             {/* Step 3 */}
             <li className="flex flex-col sm:flex-row items-center gap-6">
-              <img src="/img/feature-timer.png" alt="타이머 시작" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
+              <img src="/img/how-feature-timer.png" alt="타이머 시작" className="w-full sm:w-[280px] h-[180px] object-cover rounded-lg shadow-md" />
               <div className="flex-1 w-full">
                 <h3 className="text-headline4_B md:text-headline3_B mb-2">3. 자동 타이머로 몰입</h3>
                 <p className="text-body1_R md:text-base text-gray-500">
