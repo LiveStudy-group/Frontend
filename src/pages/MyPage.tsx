@@ -15,13 +15,14 @@ import {
   uploadProfileImage
 } from "../lib/api/auth";
 import { useAuthStore } from "../store/authStore";
+import type { UserStudyStatsResponse } from "../types/auth";
 import { normalizeImageUrl } from "../utils/image";
 
 export default function MyPage() {
   const { user } = useAuthStore();
   const [titles, setTitles] = useState<{ name: string; key: string; type: string; description: string; acquiredAt: string; icon: string; isRepresent: boolean }[]>([]);
   const [selectedTitle, setSelectedTitle] = useState("");
-  const [userStats, setUserStats] = useState<any>(null);
+  const [userStats, setUserStats] = useState<UserStudyStatsResponse | null>(null);
   const [todayStudyTime, setTodayStudyTime] = useState<string>("00:00:00");
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isLoadingTodayTime, setIsLoadingTodayTime] = useState(true);
@@ -65,19 +66,27 @@ useEffect(() => {
           setUserStats(statsResult.data);
         } else {
           console.warn("통계 정보 조회 실패");
-          // 기본 통계 데이터 설정
-          setUserStats({
-            totalStudyTime: 0,
-            totalAttendanceDays: 0,
-            continueAttendanceDays: 0
-          });
+                  // 기본 통계 데이터 설정
+        setUserStats({
+          userId: 0,
+          nickname: user?.nickname || '',
+          totalStudyTime: 0,
+          totalAwayTime: 0,
+          totalAttendanceDays: 0,
+          continueAttendanceDays: 0,
+          lastAttendanceDate: new Date().toISOString().split('T')[0]
+        });
         }
       } catch (error) {
         console.error('통계 정보 조회 에러:', error);
         setUserStats({
+          userId: 0,
+          nickname: user?.nickname || '',
           totalStudyTime: 0,
+          totalAwayTime: 0,
           totalAttendanceDays: 0,
-          continueAttendanceDays: 0
+          continueAttendanceDays: 0,
+          lastAttendanceDate: new Date().toISOString().split('T')[0]
         });
       } finally {
         setIsLoadingStats(false);
@@ -140,9 +149,13 @@ useEffect(() => {
         setEmail(user.email || "");
       }
       setUserStats({
+        userId: 0,
+        nickname: user?.nickname || '',
         totalStudyTime: 0,
+        totalAwayTime: 0,
         totalAttendanceDays: 0,
-        continueAttendanceDays: 0
+        continueAttendanceDays: 0,
+        lastAttendanceDate: new Date().toISOString().split('T')[0]
       });
       setTitles([
         { name: "신입생", key: "newbie", type: "기본", description: "첫 시작", acquiredAt: "2024-01-01", icon: "🎓", isRepresent: false },
@@ -307,7 +320,7 @@ useEffect(() => {
               <img
                 src={profileImage}
                 alt="프로필 이미지"
-                className="w-10 h-10 bg-gray-300 rounded-full border border-gray-300 object-cover"
+                className="w-10 h-10 bg-gray-100 rounded-full border border-gray-300 object-cover"
               />
               <input
                 type="file"
