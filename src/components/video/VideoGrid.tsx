@@ -8,6 +8,8 @@ import type { FocusStatus } from '../../store/focusStatusStore';
 import { useFocusStatusStore } from '../../store/focusStatusStore';
 import LiveVideoBox from './LiveVideoBox';
 import VideoReportModal from './VideoReportModal';
+import { isAxiosError } from 'axios';
+
 
 type ReportReason = '욕설' | '음란' | '방해' | '기타';
 type ReportInfo = { id: string; name: string } | null;
@@ -87,6 +89,17 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
     }
   };
 
+  // 동일 인물신고 시 에러 메시지 추출
+  const getErrorMessage = (e: unknown) => {
+    if (isAxiosError(e)) {
+      const data = e.response?.data as any;
+      if (data?.message) return data.message as string;
+      if (data?.error) return String(data.error);
+      if (e.response?.statusText) return e.response.statusText;
+    }
+      return '신고 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+  };
+
   const handleSubmit = async () => {
     if (!reportInfo) return alert('신고 대상을 식별할 수 없습니다.');
     if (!selectedReason) return alert('신고 사유를 선택해주세요.');
@@ -107,7 +120,7 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
       closeReport();
     } catch (err) {
       console.error('[신고 실패]', err);
-      alert('신고 접수 중 오류가 발생했습니다.');
+       alert(getErrorMessage(err));
     }
   };
 
