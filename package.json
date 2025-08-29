@@ -16,6 +16,7 @@
     "axios": "^1.10.0",
     "feather-icons": "^4.29.2",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "livekit-client": "^2.15.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
