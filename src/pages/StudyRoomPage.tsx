@@ -14,20 +14,16 @@ import { parseJwt } from '../utils/jwt';
 const StudyRoomPage = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState('');
-  const [identity, setIdentity] = useState(''); // 유지: 내부 검증 로그에 사용됨
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, token: accessToken } = useAuthStore();
   const { roomId } = useParams<{ roomId: string }>();
   const numericRoomId = Number(roomId);
 
-
-  // 사용자 인증 정보가 없거나 토큰이 없는 경우 경고
   useEffect(() => {
     if (!user || !accessToken) {
       console.warn('사용자 인증 정보 없음');
-      // navigate('/login');
     }
-  }, [user, accessToken, navigate]);
+  }, [user, accessToken]);
 
   // LiveKit 토큰 발급 및 로컬 검증
   useEffect(() => {
@@ -35,27 +31,17 @@ const StudyRoomPage = () => {
 
     const fetchToken = async () => {
       try {
-        const generatedIdentity = user.uid;
-        setIdentity(generatedIdentity);
+        const generatedIdentity = String(user.userId);
 
-        const res = await api.post(
-          '/api/livekit/token',
-          {
-            roomName: roomId,
-            identity: generatedIdentity,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const res = await api.post('/api/livekit/token', {
+          roomName: roomId,
+          identity: generatedIdentity,
+        });
 
-        const livekitToken = res.data?.token as string;
+        const livekitToken = (res.data as { token?: string })?.token ?? '';
         setToken(livekitToken);
         console.log('[🔑 LiveKit 토큰]', livekitToken);
 
-        // 토큰 즉석 검증 로그
         try {
           const { header, payload } = parseJwt(livekitToken);
           console.log('[JWT header]', header);
@@ -66,7 +52,6 @@ const StudyRoomPage = () => {
           console.log('[검증] exp', payload.exp, '>', now, payload.exp > now ? 'OK' : 'EXPIRED');
           console.log('[검증] video.room === roomId', payload.video?.room, roomId, payload.video?.room === roomId ? 'OK' : 'MISMATCH');
           console.log('[검증] sub(=identity)', payload.sub);
-
         } catch (e) {
           console.warn('[JWT 파싱/검증 요청 실패]', e);
         }
@@ -78,7 +63,6 @@ const StudyRoomPage = () => {
     fetchToken();
   }, [user, accessToken, roomId]);
 
-  // 디버깅 용 나중에 삭제 예정
   const RoomLogger = () => {
     const room = useRoomContext();
     useEffect(() => {
@@ -102,27 +86,20 @@ const StudyRoomPage = () => {
     return null;
   };
 
-  // 스터디룸 퇴장 처리
   const handleLeaveRoom = async () => {
     if (!user) {
       alert('사용자 정보가 없습니다.');
       return;
     }
+    if (!Number.isFinite(user.userId)) {
+      alert('유효한 사용자 ID가 없습니다. 다시 로그인 해주세요.');
+      return;
+    }
 
     try {
-      // 기존 응답 미할당 → const res 로 통일
-      const res = await api.post(
-        '/api/study-rooms/leave',
-        null,
-        {
-          params: {
-            userId: user.uid,
-          },
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const res = await api.post('/api/study-rooms/leave', null, {
+        params: { userId: user.userId },
+      });
       console.log('퇴장 응답 상태:', res.status);
       navigate('/main');
     } catch (err) {
@@ -131,7 +108,6 @@ const StudyRoomPage = () => {
     }
   };
 
-  // 토큰 없으면 렌더링하지 않음
   if (!token) return <div>스터디룸 입장 중입니다...</div>;
 
   return (
@@ -143,14 +119,11 @@ const StudyRoomPage = () => {
       video
       audio={false}
     >
-      {/* 디버깅용 컴포넌트 */}
       <RoomLogger />
 
       <div className="bg-gray-50 flex flex-col nodrag min-h-screen overflow-hidden">
-        {/* 공통 헤더 컴포넌트 */}
         <Header />
 
-        {/* 퇴장하기 버튼 */}
         <div className="w-full max-w-[1280px] mx-auto flex justify-end p-4">
           <button
             onClick={handleLeaveRoom}
@@ -161,21 +134,11 @@ const StudyRoomPage = () => {
         </div>
 
         <main className="flex-1 w-full max-w-[1280px] mx-auto flex overflow-hidden">
-          {/* 화상 공유 컴포넌트 */}
           <VideoGrid roomId={numericRoomId} />
-
-          {/* 메시지 버튼 및 모달 */}
           <MessageButton onClick={() => setIsModalOpen(true)} />
-          <MessageModal
-            open={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            useMock={false}
-            roomId={numericRoomId}
-          />
-          {/* <MockMessageTest /> */}
+          <MessageModal open={isModalOpen} onClose={() => setIsModalOpen(false)} useMock={false} roomId={numericRoomId} />
         </main>
 
-        {/* 공통 푸터 컴포넌트 */}
         <Footer />
       </div>
     </LiveKitRoom>
