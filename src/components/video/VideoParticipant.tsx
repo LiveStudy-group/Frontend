@@ -78,12 +78,14 @@ const VideoParticipant = ({
         />
 
         {/* 타이머 */}
-        <div className="absolute top-1 right-1 flex justify-center items-center gap-[0.2rem] mt-[0.1rem]">
-          <span className="text-caption2_M text-white bg-black/50 px-1 rounded">
+       <div className="absolute top-1 right-1 flex justify-center items-center gap-[0.2rem] mt-[0.1rem]">
+          <span
+            className="text-caption2_M text-white bg-black/50 px-1 rounded font-mono tabular-nums"
+          >
             {formatTime(studyTime)}
           </span>
         </div>
-
+        
         {/* 영상 */}
         {hidden ? (
           <div className="flex items-center justify-center w-full h-full bg-gray-300 text-sm text-gray-600 text-center px-2">
