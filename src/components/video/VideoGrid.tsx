@@ -73,19 +73,6 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
     return p.identity || '';
   };
 
-  const getNextStatus = (current: FocusStatus): FocusStatus => {
-    return current === 'focus' ? 'pause' : 'focus';
-  };
-
-  const getApiForTransition = (
-    from: FocusStatus,
-    to: FocusStatus
-  ): '/api/timer/resume' | '/api/timer/start' | '/api/timer/pause' => {
-    if (from === 'pause' && to === 'focus') return '/api/timer/resume';
-    if (to === 'focus') return '/api/timer/start';
-    return '/api/timer/pause';
-  };
-
   // 에러 메시지 안전 추출
   const getErrorMessage = (e: unknown): string => {
     if (isAxiosError(e)) {
@@ -100,9 +87,10 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
   };
 
   // 상태 토글
-  const toggleStatusColor = async (key: string) => {
-    const current: FocusStatus = focusStatuses[key] ?? 'idle';
-    const next: FocusStatus = getNextStatus(current);
+  const toggleStatusColor = async (identity: string) => {
+    const current: FocusStatus = focusStatuses[identity] ?? 'idle';
+    let next: FocusStatus;
+    let url: string;
 
     const numericUserId = user?.userId;
     if (!Number.isFinite(numericUserId ?? NaN)) {
@@ -110,17 +98,27 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
       return;
     }
 
-    setStatus(key, next);
+     if (current === 'idle') {
+      next = 'focus';
+      url = '/api/timer/start';
+    } else if (current === 'focus') {
+      next = 'pause';
+      url = '/api/timer/pause';
+    } else if (current === 'pause') {
+      next = 'focus';
+      url = '/api/timer/resume';
+    } else {
+      return;
+    }
+
+    setStatus(identity, next);
 
     try {
-      const url = getApiForTransition(current, next);
       const body = { userId: numericUserId, roomId };
-      console.log('[Timer API 요청]', body);
       await api.post<void>(url, body);
     } catch (err: unknown) {
-      console.error(`[상태 변경 실패] ${key}:`, err);
-
-      setStatus(key, current);
+      console.error(`[상태 변경 실패] ${identity}:`, err);
+      setStatus(identity, current); 
 
       if (isAxiosError(err) && isApiErrorBody(err.response?.data)) {
         if (err.response?.data.errorCode === 'U001') {
@@ -237,6 +235,9 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
               focusStatus={focusStatuses[key] ?? 'idle'}
               titleIcon={titleIcon}
               titleName={titleName}
+              totalStudyTime={0}
+              totalAwayTime={0}
+              statusChangedAt={new Date().toISOString()}
               toggleHide={() => toggleHide(key)}
               toggleStatusColor={toggleStatusColor}
               openReport={openReport}

@@ -1,8 +1,9 @@
 import { LocalParticipant, Participant } from 'livekit-client';
 import { MdReport, MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import { useTimer } from '../../hooks/useTimer';
 import type { FocusStatus } from '../../store/focusStatusStore';
+import { formatTime } from '../../utils/time';
 import LiveVideoBox from './LiveVideoBox';
-
 interface Props {
   participant: Participant;
   identityKey: string;
@@ -14,6 +15,9 @@ interface Props {
   focusStatus: FocusStatus;
   titleIcon: string;
   titleName: string;
+  totalStudyTime: number;
+  totalAwayTime: number;
+  statusChangedAt: string;
   toggleHide: () => void;
   toggleStatusColor: (identity: string) => void;
   openReport: (id: string, name: string) => void;
@@ -30,16 +34,30 @@ const VideoParticipant = ({
   focusStatus,
   titleIcon,
   titleName,
+  totalStudyTime,
+  totalAwayTime,
+  statusChangedAt,
   toggleHide,
   toggleStatusColor,
   openReport,
 }: Props) => {
+  const timerStatus: 'FOCUS' | 'AWAY' | 'IDLE' =
+    focusStatus === 'focus'
+      ? 'FOCUS'
+      : focusStatus === 'pause'
+      ? 'AWAY'
+      : 'IDLE';
+
+  const { studyTime } = useTimer(timerStatus, totalStudyTime, totalAwayTime, statusChangedAt);
+
   const dotColor =
     focusStatus === 'focus'
       ? 'bg-green-500'
       : focusStatus === 'pause'
+      ? 'bg-yellow-500'
+      : focusStatus === 'ended'
       ? 'bg-red-500'
-      : 'bg-gray-400'; // idle
+      : 'bg-gray-400';
 
   return (
     <div
@@ -61,7 +79,9 @@ const VideoParticipant = ({
 
         {/* 타이머 */}
         <div className="absolute top-1 right-1 flex justify-center items-center gap-[0.2rem] mt-[0.1rem]">
-          <span className="text-caption2_M text-white bg-black/50 px-1 rounded">01:59:59</span>
+          <span className="text-caption2_M text-white bg-black/50 px-1 rounded">
+            {formatTime(studyTime)}
+          </span>
         </div>
 
         {/* 영상 */}
