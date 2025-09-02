@@ -2,12 +2,11 @@ import { useTracks } from '@livekit/components-react';
 import { isAxiosError } from 'axios';
 import { LocalParticipant, Participant, RemoteParticipant, Track } from 'livekit-client';
 import { useMemo, useState } from 'react';
-import { MdReport, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import api from '../../lib/api/axios';
 import { useAuthStore } from '../../store/authStore';
 import type { FocusStatus } from '../../store/focusStatusStore';
 import { useFocusStatusStore } from '../../store/focusStatusStore';
-import LiveVideoBox from './LiveVideoBox';
+import VideoParticipant from './VideoParticipant';
 import VideoReportModal from './VideoReportModal';
 
 type ReportReason = '욕설' | '음란' | '방해' | '기타';
@@ -205,9 +204,8 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
     return `p-${idx}`;
   };
 
-  return (
+    return (
     <>
-      {/* 신고 모달: 표시용 이름만 노출 */}
       <VideoReportModal
         targetName={reportInfo?.name ?? ''}
         selected={selectedReason}
@@ -226,83 +224,23 @@ const VideoGrid = ({ roomId }: { roomId: number }) => {
           const targetName = makeTargetName(participant);
           const isPlaceholder = displayName === '연결 중…';
 
-          const dotColor =
-            focusStatuses[key] === 'focus'
-              ? 'bg-green-500'
-              : focusStatuses[key] === 'pause'
-              ? 'bg-red-500'
-              : 'bg-gray-400'; // idle
-
           return (
-            <div
+            <VideoParticipant
               key={`${key}-${idx}`}
-              className="bg-gray-100 rounded shadow-sm overflow-hidden flex items-center justify-center aspect-[4/3] relative"
-            >
-              <div className="w-full h-full bg-gray-200 rounded-md relative">
-                {/* 상태 점 */}
-                <div
-                  onClick={() => {
-                    if (isPlaceholder) return;
-                    if (!(participant instanceof LocalParticipant) && !participant.isLocal) return; // 로컬만 허용
-                    toggleStatusColor(key);
-                  }}
-                  className={`absolute top-1 left-1 w-2 h-2 rounded-full z-50 ${
-                    isPlaceholder ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-                  } ${dotColor}`}
-                />
-
-                {/* 타이머 */}
-                <div className="absolute top-1 right-1 flex justify-center items-center gap-[0.2rem] mt-[0.1rem]">
-                  <span className="text-caption2_M text-white bg-black/50 px-1 rounded">01:59:59</span>
-                </div>
-
-                {/* 영상 */}
-                {hiddenParticipants[key] ? (
-                  <div className="flex items-center justify-center w-full h-full bg-gray-300 text-sm text-gray-600 text-center px-2">
-                    <p>
-                      <span className="font-semibold text-black">{displayName}</span>님의 화면은 현재 가려졌습니다.
-                    </p>
-                  </div>
-                ) : (
-                  <LiveVideoBox participant={participant} />
-                )}
-
-                {/* 하단 바 */}
-                <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-black/40 text-white text-xs flex items-center justify-center">
-                  <button
-                    disabled={isPlaceholder}
-                    className={`absolute right-8 ${
-                      isPlaceholder ? 'opacity-40 cursor-not-allowed' : 'text-gray-300 hover:text-gray-500'
-                    }`}
-                    onClick={() => !isPlaceholder && toggleHide(key)}
-                  >
-                    {hiddenParticipants[key] ? <MdVisibility size={16} /> : <MdVisibilityOff size={16} />}
-                  </button>
-
-                  <div className="flex items-center space-x-1">
-                    <span className="text-sm">
-                      {participant instanceof LocalParticipant || participant.isLocal ? titleIcon : '🌱'}
-                    </span>
-                    <span className="text-caption1_M text-lime-400 font-semibold">
-                      {participant instanceof LocalParticipant || participant.isLocal ? titleName : '칭호'}
-                    </span>
-                    <span className="text-caption1_M font-semibold">{displayName}</span>
-                  </div>
-
-                  {/* 신고 버튼 */}
-                  <button
-                    disabled={isPlaceholder}
-                    className={`absolute right-2 ${
-                      isPlaceholder ? 'opacity-40 cursor-not-allowed' : 'text-red-300 hover:text-red-500'
-                    }`}
-                    onClick={() => !isPlaceholder && openReport(key, targetName)}
-                    aria-label="신고하기"
-                  >
-                    <MdReport size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
+              participant={participant}
+              identityKey={key}
+              idx={idx}
+              displayName={displayName}
+              targetName={targetName}
+              isPlaceholder={isPlaceholder}
+              hidden={hiddenParticipants[key] ?? false}
+              focusStatus={focusStatuses[key] ?? 'idle'}
+              titleIcon={titleIcon}
+              titleName={titleName}
+              toggleHide={() => toggleHide(key)}
+              toggleStatusColor={toggleStatusColor}
+              openReport={openReport}
+            />
           );
         })}
       </section>
